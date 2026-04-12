@@ -1,5 +1,9 @@
 #include "portable.h"
 
+yr_uint32_t yr_prev_task_sp_p;
+yr_uint32_t yr_next_task_sp_p;
+yr_uint32_t yr_switch_flag;
+
 typedef struct yr_context_t {
     yr_cpu_stack_t r4;
     yr_cpu_stack_t r5;
