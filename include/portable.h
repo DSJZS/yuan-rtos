@@ -19,7 +19,7 @@ typedef yr_int32_t      yr_cpu_stack_t;
 // void port_task_switch( task_handler_t from, task_handler_t to);
 
 /* 任务栈初始化 */
-yr_uint8_t *yr_task_stack_init( void *entry, void *exit, yr_uint8_t *stackaddr);
+yr_uint8_t *yr_task_stack_init( void *entry, void *exit,  void *param, yr_uint8_t *stackaddr);
 /* 运行后切换到第一个任务 */
 void yr_task_first_switch_to( yr_uint32_t to);
 /* 由一个任务切换到另一个任务 */

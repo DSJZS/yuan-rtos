@@ -31,7 +31,7 @@ typedef struct yr_context_t {
  * @param stackaddr Stack top (high address end).
  * @return New PSP value after frame placement.
  */
-yr_uint8_t *yr_task_stack_init( void *entry, void *exit, yr_uint8_t *stackaddr)
+yr_uint8_t *yr_task_stack_init( void *entry, void *exit,  void *param, yr_uint8_t *stackaddr)
 {
     yr_context_t *pstack;
     yr_uint8_t *psp;
@@ -51,6 +51,7 @@ yr_uint8_t *yr_task_stack_init( void *entry, void *exit, yr_uint8_t *stackaddr)
     for (i = 0; i < 16; i++)
         ((yr_cpu_stack_t *)pstack)[i] = 0;
 
+    pstack->r0 = (yr_cpu_stack_t)param;
     pstack->psr = 0x01000000UL;             /* Default xPSR (Thumb bit set) */
     pstack->pc_r15  = (yr_cpu_stack_t)entry;    /* Entry point */
     pstack->lr_r14  = (yr_cpu_stack_t)exit;     /* If thread function returns */
