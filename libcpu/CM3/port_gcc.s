@@ -6,11 +6,15 @@
     .extern yr_next_task_sp_p
     .extern yr_switch_flag
 
+    .global yr_irq_disable
+    .global yr_irq_enable
     .global yr_task_first_switch_to
     .global SVC_Handler
     .global yr_task_switch
     .global PendSV_Handler
 	
+    .type yr_irq_disable, %function
+    .type yr_irq_enable, %function
     .type yr_task_first_switch_to, %function
     .type SVC_Handler, %function
     .type yr_task_switch, %function
@@ -20,6 +24,19 @@
     .equ NVIC_PENDSVSET, 0x10000000
     .equ NVIC_SYSPRI2,   0xE000ED20
     .equ NVIC_PENDSV_PRI, 0x00FF0000
+
+@ yr_uint32_t yr_irq_disable(void)
+    .thumb_func
+yr_irq_disable:    
+    mrs     r0, PRIMASK          @ save current PRIMASK
+    cpsid   i                    @ disable IRQ
+    bx      lr
+
+@ void yr_irq_enable(yr_uint32_t disirq)
+    .thumb_func
+yr_irq_enable:    
+    msr     PRIMASK, r0          @ restore PRIMASK
+    bx      lr
 
 @ void yr_task_first_switch_to( yr_uint32_t to)
     .thumb_func

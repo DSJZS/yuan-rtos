@@ -2,6 +2,7 @@
 #define YUAN_RTOS_PORTABLE_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 /* 常用数据类型定义 */
 typedef uint8_t         yr_uint8_t;
@@ -13,10 +14,13 @@ typedef int16_t         yr_int16_t;
 typedef int32_t         yr_int32_t;
 typedef int64_t         yr_int64_t;
 
-typedef yr_int32_t      yr_cpu_stack_t;
-
 // void port_task_switch_to( task_handler_t to);
 // void port_task_switch( task_handler_t from, task_handler_t to);
+
+/* 关闭常规中断(对于单核处理器相当于进入临界区) */
+yr_uint32_t yr_irq_disable(void);
+/* 打开常规中断(对于单核处理器相当于退出临界区) */
+void yr_irq_enable(yr_uint32_t disirq);
 
 /* 任务栈初始化 */
 yr_uint8_t *yr_task_stack_init( void *entry, void *exit,  void *param, yr_uint8_t *stackaddr);
