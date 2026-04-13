@@ -1,5 +1,7 @@
 #include "service.h"
 
+#if YR_DEBUG_LOG_ON
+
 #ifndef __weak
 #define __weak __attribute__((weak))
 #endif
@@ -93,3 +95,5 @@ void yr_printf(const char *fmt, ...)
     for (int i = 0; i < length; i++)
         yr_putc(buffer[i]);
 }
+
+#endif /* YR_DEBUG_LOG_ON */
