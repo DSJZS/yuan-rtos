@@ -9,9 +9,9 @@ void yr_list_init( yr_list_t* list)
 yr_bool_t yr_list_isempty( yr_list_t* list)
 {
     if( list->next == list )
-        return YR_BOOL_TRUE;
+        return YR_TRUE;
     else
-        return YR_BOOL_FALSE;
+        return YR_FALSE;
 }
 
 void yr_list_insert_before( yr_list_t* list, yr_list_t* node)
