@@ -41,6 +41,7 @@ yr_irq_enable:
 @ void yr_task_first_switch_to( yr_uint32_t to)
     .thumb_func
 yr_task_first_switch_to:
+    @ 配置 PendSV 为最低优先级
     ldr r1, =NVIC_SYSPRI2
     ldr r2, [r1]
     ldr r3, =NVIC_PENDSV_PRI
@@ -67,6 +68,7 @@ SVC_Handler:
 @ void yr_task_switch( yr_uint32_t from, yr_uint32_t to)
     .thumb_func
 yr_task_switch:
+    @ 屏蔽中断，确保任务切换的原子性
     mrs r12, PRIMASK
     cpsid i
 
