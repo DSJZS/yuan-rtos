@@ -16,14 +16,21 @@
 #define YR_DEBUG_LOG_ON                 (1)
 #endif /* YR_DEBUG_LOG_ON */
 
+#if YR_DEBUG_LOG_ON
 /* 调试功能为实现格式化输出需要的缓冲区大小 */
 #ifndef YR_PRINTF_BUF_SIZE
 #define YR_PRINTF_BUF_SIZE              (128)  
 #endif /* YR_PRINTF_BUF_SIZE */
+#endif /* YR_DEBUG_LOG_ON */
 
 /* 开启断言功能 */
 #ifndef YR_ASSERT_ON
 #define YR_ASSERT_ON                    (1)
 #endif /* YR_ASSERT_ON */
+
+/* 开启参数检查 */
+#ifndef YR_PARAM_CHECK_ON           
+#define YR_PARAM_CHECK_ON               (1)
+#endif /* YR_PARAM_CHECK_ON */
 
 #endif /* YUAN_RTOS_CONFIG_H */

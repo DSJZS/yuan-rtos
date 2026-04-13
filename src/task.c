@@ -3,13 +3,9 @@
 
 yr_err_t yr_task_init( yr_task_t *task, yr_task_func_t entry, void *param, void *stack_addr, yr_uint32_t stack_size, yr_uint8_t priority, yr_uint32_t tick)
 {
-    if( task == NULL || entry == NULL || stack_addr == NULL )
-        return YR_NULL;
-    if( stack_size == 0 )
-        return YR_INVALID;
-    if( priority >= YR_TASK_MAX_PRIORITY )
-        return YR_INVALID;
-
+    YR_PARAM_CHECK( task == NULL || entry == NULL || stack_addr == NULL, YR_NULL);
+    YR_PARAM_CHECK( stack_size == 0 || priority >= YR_TASK_MAX_PRIORITY,YR_INVALID);
+    
     task->stack_addr = stack_addr;
     task->stack_size = stack_size;
 
