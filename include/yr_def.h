@@ -1,6 +1,9 @@
 #ifndef YUAN_RTOS_DEF_H
 #define YUAN_RTOS_DEF_H
 
+#include "yr_config.h"
+#include "service.h"
+
 /* 就绪 */
 #define YR_TASK_STATUS_READY        0x01
 /* 运行 */
@@ -25,12 +28,27 @@ typedef enum yr_bool_t {
     YR_TRUE,
 } yr_bool_t;
 
+typedef enum yr_log_level_t {
+    YR_DEBUG_ERROR = 0,
+    YR_DEBUG_WARN,
+    YR_DEBUG_INFO,
+} yr_log_level_t;
 
 /* 类似 linux 内核的 container_of 操作 */
 #define YR_CONTAINER_OF(ptr, type, member) \
     ((type *)((char *)(ptr) - (unsigned long)(&((type *)0)->member)))
 
-
+#if YR_DEBUG_LOG_ON
+#define YR_DEBUG_LOG(level, fmt, ...)                                               \
+    do {                                                                            \
+        const char *log_level =                                                     \
+            ((level) == YR_DEBUG_ERROR)  ? "ERR" :                                  \
+            ((level) == YR_DEBUG_WARN) ? "WARN" : "INFO";                           \
+        yr_printf("[%s] " fmt, log_level, ##__VA_ARGS__);                           \
+    } while (0)
+#else
+#define YR_DEBUG_LOG(level, fmt, ...) ((void)0)
+#endif
 
 
 #endif /* YUAN_RTOS_DEF_H */
