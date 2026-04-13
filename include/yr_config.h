@@ -21,4 +21,9 @@
 #define YR_PRINTF_BUF_SIZE              (128)  
 #endif /* YR_PRINTF_BUF_SIZE */
 
+/* 开启断言功能 */
+#ifndef YR_ASSERT_ON
+#define YR_ASSERT_ON                    (1)
+#endif /* YR_ASSERT_ON */
+
 #endif /* YUAN_RTOS_CONFIG_H */

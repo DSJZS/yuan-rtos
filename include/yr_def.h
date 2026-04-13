@@ -3,6 +3,7 @@
 
 #include "yr_config.h"
 #include "service.h"
+#include "portable.h"
 
 /* 就绪 */
 #define YR_TASK_STATUS_READY        0x01
@@ -50,5 +51,17 @@ typedef enum yr_log_level_t {
 #define YR_DEBUG_LOG(level, fmt, ...) ((void)0)
 #endif
 
+#if YR_ASSERT_ON
+#define YR_ASSERT(expr) do {                                                        \
+        if( !(expr) ) {                                                             \
+            yr_irq_disable();                                                       \
+            YR_DEBUG_LOG(YR_DEBUG_ERROR, "assert fail, %s( line %d ): %s\r\n",      \
+                                                    __func__, __LINE__, #expr);     \
+            while(1);                                                               \
+        }                                                                           \
+    } while (0)                                                                     
+#else
+#define YR_ASSERT(expr) ((void)0)
+#endif 
 
 #endif /* YUAN_RTOS_DEF_H */
