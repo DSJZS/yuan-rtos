@@ -11,4 +11,11 @@ typedef enum yr_bool_t {
     YR_BOOL_TRUE,
 } yr_bool_t;
 
+/* 类似 linux 内核的 container_of 操作 */
+#define YR_CONTAINER_OF(ptr, type, member) \
+    ((type *)((char *)(ptr) - (unsigned long)(&((type *)0)->member)))
+
+
+
+
 #endif /* YUAN_RTOS_DEF_H */
