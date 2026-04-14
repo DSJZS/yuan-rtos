@@ -1,0 +1,6 @@
+#ifndef YUAN_RTOS_IDLE_H
+#define YUAN_RTOS_IDLE_H
+
+void yr_idle_task_init(void);
+
+#endif /* YUAN_RTOS_IDLE_H */

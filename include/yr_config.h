@@ -33,4 +33,9 @@
 #define YR_PARAM_CHECK_ON               (1)
 #endif /* YR_PARAM_CHECK_ON */
 
+/* IDLE任务的栈大小 */
+#ifndef YR_IDLE_TASK_STACK_SZIE         
+#define YR_IDLE_TASK_STACK_SZIE         (256)
+#endif /* YR_IDLE_TASK_STACK_SZIE */
+
 #endif /* YUAN_RTOS_CONFIG_H */
