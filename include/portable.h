@@ -28,6 +28,7 @@ yr_uint8_t *yr_task_stack_init( void *entry, void *exit,  void *param, yr_uint8_
 void yr_task_first_switch_to( yr_uint32_t to);
 /* 由一个任务切换到另一个任务 */
 void yr_task_switch( yr_uint32_t from, yr_uint32_t to);
-
+/* 接收一个32位的数据，返回被置1的最低位的位数，比如输入 0x01 会返回 1，如果 0x00，返回0*/
+int yr_find_first_set(int value);
 
 #endif /* YUAN_RTOS_PORTABLE_H */

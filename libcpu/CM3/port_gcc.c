@@ -60,3 +60,9 @@ yr_uint8_t *yr_task_stack_init( void *entry, void *exit,  void *param, yr_uint8_
 
     return psp;
 }
+
+int yr_find_first_set(int value)
+{
+    return __builtin_ffs(value);
+}
+

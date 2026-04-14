@@ -55,7 +55,7 @@ typedef enum yr_log_level_t {
 #if YR_ASSERT_ON
 #define YR_ASSERT(expr) do {                                                    \
     if( !(expr) ) {                                                             \
-        yr_irq_disable();                                                       \
+        (void)yr_irq_disable();                                                 \
         YR_DEBUG_LOG(YR_DEBUG_ERROR, "assert fail, %s( line %d ): %s\r\n",      \
                                                 __func__, __LINE__, #expr);     \
         while(1);                                                               \
