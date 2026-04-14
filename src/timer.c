@@ -152,5 +152,19 @@ void yr_tick_update(void)
     yr_timer_check();
 }
 
+/* 执行这个函数时， param 必须指向一个task */
+void yr_timeout_default_func(void *param)
+{
+    yr_task_t *task = (yr_task_t *)param;
+    YR_ASSERT(task != NULL);
 
+    /* 如果不处于阻塞状态，超时回调无权更改状态 */
+    if( task->status != YR_TASK_STATUS_BLOCKED )
+        return;
+    task->status = YR_TASK_STATUS_READY;
+
+    /* 下面这两个函数是要是原子的 */
+    yr_sched_insert_task( task);
+    yr_sched_switch();
+}
 
