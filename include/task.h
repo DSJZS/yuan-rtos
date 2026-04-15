@@ -9,6 +9,23 @@
 /* 任务优先级范围： [0 ,YR_TASK_PRIORITY_MAX) ，类似中断优先级，越小优先级越大 */
 #define YR_TASK_MAX_PRIORITY    (32)
 
+typedef enum yr_task_status_t {
+    /* 初始化 */
+    YR_TASK_STATUS_INIT  = 0,
+    /* 就绪 */
+    YR_TASK_STATUS_READY,
+    /* 运行 */
+    YR_TASK_STATUS_RUNNING,
+    /* 阻塞 */
+    YR_TASK_STATUS_BLOCKED,
+    /* 挂起(暂停) */
+    YR_TASK_STATUS_SUSPENDED,
+    /* 终止(待删除，僵尸任务) */
+    YR_TASK_STATUS_TERMINATED,
+    /* 删除(不再被管理) */
+    YR_TASK_STATUS_DELETED,
+}yr_task_status_t;
+
 typedef struct yr_task_t {
     yr_list_t list_node;
 
