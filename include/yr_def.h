@@ -42,6 +42,13 @@ typedef enum yr_log_level_t {
 #define YR_CONTAINER_OF(ptr, type, member) \
     ((type *)((char *)(ptr) - (unsigned long)(&((type *)0)->member)))
 
+#define YR_TICKS_TO_MS(ticks) \
+    ((yr_uint32_t)((ticks) * 1000U / YR_TICK_RATE_HZ))
+
+#define YR_MS_TO_TICKS(ms) \
+    ((yr_uint32_t)(((ms) * YR_TICK_RATE_HZ + 999U) / 1000U))
+
+
 /* 日志输出 */
 #if YR_DEBUG_LOG_ON
 #define YR_DEBUG_LOG(level, fmt, ...) do {                                      \
