@@ -13,6 +13,9 @@ yr_uint32_t yr_thread_ready_priority_group;
 yr_list_head_t yr_task_priority_table[YR_TASK_MAX_PRIORITY];
 yr_list_head_t yr_task_defunct_list;
 
+/* 对于任务而言，通过该函数总能得到自己的指针，可以认为是"原子地"读取。
+ * 对于中断而言，这个函数是不原子的
+ */
 yr_task_t* yr_sched_get_current(void)
 {
     return yr_current_task;
@@ -101,7 +104,7 @@ yr_err_t yr_sched_insert_task( yr_task_t* task)
     return YR_OK;
 }
 
-yr_err_t yr_sched_delete_task( yr_task_t* task)
+yr_err_t yr_sched_remove_task( yr_task_t* task)
 {
     yr_uint32_t disirq = 0;
 
@@ -139,6 +142,7 @@ void yr_sched_yield(void)
         return;
     }
 
+    /* 将当前任务放到队列末尾 */
     yr_list_delete_self( &prev_task->list_node );
     yr_list_insert_before( priority_list, &prev_task->list_node);
 
@@ -146,4 +150,3 @@ void yr_sched_yield(void)
 
     yr_sched_switch();
 }
-
