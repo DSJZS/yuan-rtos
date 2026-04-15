@@ -5,21 +5,24 @@
 #include "service.h"
 #include "portable.h"
 
+/* 初始化 */
+#define YR_TASK_STATUS_INIT         0x01
 /* 就绪 */
-#define YR_TASK_STATUS_READY        0x01
+#define YR_TASK_STATUS_READY        0x02
 /* 运行 */
-#define YR_TASK_STATUS_RUNNING      0x02
+#define YR_TASK_STATUS_RUNNING      0x04
 /* 阻塞 */
-#define YR_TASK_STATUS_BLOCKED      0x04
+#define YR_TASK_STATUS_BLOCKED      0x08
 /* 挂起(暂停) */
-#define YR_TASK_STATUS_SUSPENDED    0x08
+#define YR_TASK_STATUS_SUSPENDED    0x10
 /* 终止(待删除，僵尸任务) */
-#define YR_TASK_STATUS_TERMINATED   0x10
+#define YR_TASK_STATUS_TERMINATED   0x20
 /* 删除(不再被管理) */
-#define YR_TASK_STATUS_DELETED      0x20
+#define YR_TASK_STATUS_DELETED      0x40
 
 typedef enum yr_err_t {
     YR_OK = 0,
+    YR_ERR,
     YR_NULL,
     YR_INVALID,
 } yr_err_t;

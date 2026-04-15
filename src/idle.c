@@ -7,6 +7,8 @@ static yr_uint8_t yr_idle_stack[YR_IDLE_TASK_STACK_SZIE];
 
 void yr_idle_task_entry(void *param)
 {
+    yr_task_cleanup_defunct();
+    
     for(;;) {
         /* do nothing */
         /* 可以在这里设置进入睡眠模式以降低功耗 */

@@ -42,5 +42,8 @@ yr_err_t yr_task_create( yr_task_t *task, yr_task_func_t entry, void *param, voi
 yr_err_t yr_task_start( yr_task_t *task);
 void yr_task_sleep_ticks( yr_uint32_t ticks);
 yr_err_t yr_task_sleep_until(yr_uint32_t *pre_ticks, yr_uint32_t inc_ticks);
+yr_err_t yr_task_delete(yr_task_t *task);
+void yr_task_cleanup_defunct(void);
+yr_err_t yr_task_suspend( yr_task_t *task);
 
 #endif /* YUAN_RTOS_TASK_H */
