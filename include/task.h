@@ -7,7 +7,7 @@
 #include "timer.h"
 
 /* 任务优先级范围： [0 ,YR_TASK_PRIORITY_MAX) ，类似中断优先级，越小优先级越大 */
-#define YR_TASK_MAX_PRIORITY    (32)
+#define YR_TASK_MAX_PRIORITY                (32)
 
 typedef enum yr_task_status_t {
     /* 初始化 */
@@ -25,6 +25,13 @@ typedef enum yr_task_status_t {
     /* 删除(不再被管理) */
     YR_TASK_STATUS_DELETED,
 }yr_task_status_t;
+
+typedef enum yr_task_sync_notify_t {
+    YR_TASK_SYNC_NOTIFY_NONE = 0,
+    YR_TASK_SYNC_NOTIFY_WAIT_TIMEOUT,
+    YR_TASK_SYNC_NOTIFY_WAIT_IPC_DELETED,
+
+} yr_task_sync_notify_t;
 
 typedef struct yr_task_t {
     yr_list_t list_node;
@@ -44,6 +51,9 @@ typedef struct yr_task_t {
     yr_uint32_t remaining_ticks;
     
     yr_uint32_t status;
+    
+    yr_uint16_t sync_notify;
+    yr_uint16_t async_notify;
 
     yr_timer_t timer;
 } yr_task_t;

@@ -34,6 +34,8 @@ typedef enum yr_log_level_t {
     ((yr_uint32_t)(((ms) * YR_TICK_RATE_HZ + 999U) / 1000U))
 
 
+#define YR_WAIT_FOREVER   (yr_uint32_t)(0xFFFFFFFFU)
+
 /* 日志输出 */
 #if YR_DEBUG_LOG_ON
 #define YR_DEBUG_LOG(level, fmt, ...) do {                                      \

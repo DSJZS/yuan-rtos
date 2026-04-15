@@ -156,15 +156,36 @@ void yr_tick_update(void)
 void yr_timeout_default_func(void *param)
 {
     yr_task_t *task = (yr_task_t *)param;
+    yr_uint32_t disirq;
+    yr_bool_t need_switch = YR_FALSE;
+    yr_task_t *current_task;
+
     YR_ASSERT(task != NULL);
 
-    /* 如果不处于阻塞状态，超时回调无权更改状态 */
-    if( task->status != YR_TASK_STATUS_BLOCKED )
-        return;
-    task->status = YR_TASK_STATUS_READY;
+    disirq = yr_irq_disable();
 
-    /* 下面这两个函数是要是原子的 */
-    yr_sched_insert_task( task);
-    yr_sched_switch();
+    /* 如果不处于阻塞状态，超时回调无权更改状态 */
+    if (task->status != YR_TASK_STATUS_BLOCKED) {
+        yr_irq_enable(disirq);
+        return;
+    }
+
+    current_task = yr_sched_get_current();
+    
+    /* 确保脱离其它模块的控制，比如 IPC 的 blocked_list  */
+    yr_list_delete_self(&task->list_node);
+    task->status = YR_TASK_STATUS_READY;
+    task->sync_notify = YR_TASK_SYNC_NOTIFY_WAIT_TIMEOUT;
+    yr_sched_insert_task(task);
+
+    if (current_task != NULL &&
+        task->current_priority < current_task->current_priority)
+        need_switch = YR_TRUE;
+
+    yr_irq_enable(disirq);
+
+    if (need_switch)
+        yr_sched_switch();
 }
+
 

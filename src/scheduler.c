@@ -104,6 +104,9 @@ yr_err_t yr_sched_insert_task( yr_task_t* task)
     return YR_OK;
 }
 
+/* 这个函数只会将任务移出调度队列，但是不会尝试改变任务的状态，
+ * 需要外界根据实际的语义改变任务的状态。
+ */
 yr_err_t yr_sched_remove_task( yr_task_t* task)
 {
     yr_uint32_t disirq = 0;

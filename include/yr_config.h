@@ -38,4 +38,19 @@
 #define YR_IDLE_TASK_STACK_SZIE         (256)
 #endif /* YR_IDLE_TASK_STACK_SZIE */
 
+/* IPC 是否被支持 */
+#ifndef YR_SUPPORT_IPC
+#define YR_SUPPORT_IPC                  (1)
+#endif /* YR_SUPPORT_IPC */
+
+/* IPC 相关功能 */
+#if YR_SUPPORT_IPC
+
+/* 信号量是否被支持 */
+#ifndef YR_SUPPORT_SEMAPHORE
+#define YR_SUPPORT_SEMAPHORE            (1)
+#endif /* YR_SUPPORT_SEMAPHORE */
+
+#endif /* YR_SUPPORT_IPC */
+
 #endif /* YUAN_RTOS_CONFIG_H */

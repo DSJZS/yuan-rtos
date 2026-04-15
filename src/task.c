@@ -32,6 +32,9 @@ yr_err_t yr_task_init( yr_task_t *task, yr_task_func_t entry, void *param, void 
 
     task->status = YR_TASK_STATUS_INIT;
 
+    task->sync_notify = 0;
+    task->async_notify = 0;
+
     return YR_OK;
 }
 
@@ -166,11 +169,31 @@ yr_err_t yr_task_sleep_until(yr_uint32_t *pre_ticks, yr_uint32_t inc_ticks)
  */
 static void _yr_task_delete_locked(yr_task_t *task)
 {
-    yr_sched_remove_task(task);
+    switch (task->status) {
+        case YR_TASK_STATUS_READY:
+        case YR_TASK_STATUS_RUNNING:
+            yr_sched_remove_task(task);
+            break;
+
+        case YR_TASK_STATUS_BLOCKED:
+        case YR_TASK_STATUS_SUSPENDED:
+            yr_list_delete_self(&task->list_node);
+            break;
+
+        case YR_TASK_STATUS_INIT:
+            break;
+            
+        case YR_TASK_STATUS_TERMINATED:
+        case YR_TASK_STATUS_DELETED:
+        default:
+            return;
+    }
+
     yr_timer_stop(&task->timer);
     task->status = YR_TASK_STATUS_TERMINATED;
     yr_list_insert_before(&yr_task_defunct_list, &task->list_node);
 }
+
 
 /* 用于删除指定的(用户创建的)任务。
  * 非用户创建任务不可删除( 比如 idle 任务 )
@@ -285,6 +308,7 @@ yr_err_t yr_task_suspend( yr_task_t *task)
         task->status = YR_TASK_STATUS_SUSPENDED;
     } else if (task->status == YR_TASK_STATUS_BLOCKED) {
         yr_timer_stop(&task->timer);
+        yr_list_delete_self(&task->list_node);
         task->status = YR_TASK_STATUS_SUSPENDED;
     } else {
         yr_irq_enable(disirq);
