@@ -28,6 +28,7 @@ typedef enum yr_task_status_t {
 
 typedef enum yr_task_sync_notify_t {
     YR_TASK_SYNC_NOTIFY_NONE = 0,
+    YR_TASK_SYNC_NOTIFY_WAIT_OK,
     YR_TASK_SYNC_NOTIFY_WAIT_TIMEOUT,
     YR_TASK_SYNC_NOTIFY_WAIT_IPC_DELETED,
 

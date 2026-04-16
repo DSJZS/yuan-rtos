@@ -140,6 +140,12 @@ void yr_tick_update(void)
         return;
     }
 
+    if (current_task->status != YR_TASK_STATUS_RUNNING) {
+        yr_irq_enable(disirq);
+        yr_timer_check();
+        return;
+    }
+
     --current_task->remaining_ticks;
     if( current_task->remaining_ticks == 0 ) {
         current_task->remaining_ticks = current_task->init_ticks;
@@ -187,5 +193,4 @@ void yr_timeout_default_func(void *param)
     if (need_switch)
         yr_sched_switch();
 }
-
 

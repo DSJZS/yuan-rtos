@@ -91,15 +91,13 @@ yr_err_t yr_semaphore_take( yr_semaphore_t* sem, yr_uint32_t wait_ticks)
     /* 阻塞结束返回到这里 */
     disirq = yr_irq_disable();
 
-    /* 如果是因为超时或者信号量被删除而醒来，返回失败 */
-    if( current_task->sync_notify == YR_TASK_SYNC_NOTIFY_WAIT_TIMEOUT ||
-        current_task->sync_notify == YR_TASK_SYNC_NOTIFY_WAIT_IPC_DELETED ) {
+    if( current_task->sync_notify == YR_TASK_SYNC_NOTIFY_WAIT_OK ) {
         yr_irq_enable(disirq);
-        return YR_ERR;
+        return YR_OK;
     }
 
     yr_irq_enable(disirq);
-    return YR_OK;
+    return YR_ERR;
 }
 
 /* 释放信号量，如果达到最大值直接返回错误(因为理论上在合理的使用环境下信号量不应该超过上限) */
@@ -130,6 +128,7 @@ yr_err_t yr_semaphore_give( yr_semaphore_t* sem)
         /* 脱离信号量阻塞队列，停止超时定时器，重新进入调度队列 */
         yr_list_delete_self( &task->list_node);
         task->status = YR_TASK_STATUS_READY;
+        task->sync_notify = YR_TASK_SYNC_NOTIFY_WAIT_OK;
         yr_timer_stop(&task->timer);
         yr_sched_insert_task( task);
 
