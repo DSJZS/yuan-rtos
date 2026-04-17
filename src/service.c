@@ -15,7 +15,7 @@ __weak void yr_putc(char c)
 }
 
 /**
- * @brief Very small vsnprintf-like formatter (supports %d %s %c).
+ * @brief Very small vsnprintf-like formatter (supports %d %u %x %s %c).
  * @param buffer Output buffer.
  * @param size Buffer size (including terminator).
  * @param fmt Format string.
@@ -46,6 +46,37 @@ int yr_vsnprintf(char *buffer, size_t size, const char *fmt, va_list args)
                 {
                     temp[len++] = (char)('0' + (value % 10));
                     value /= 10;
+                } while (value && len < (int)sizeof(temp));
+
+                while (len-- && ptr < end)
+                    *ptr++ = temp[len];
+            }
+            else if (*fmt == 'u')
+            {
+                unsigned int value = va_arg(args, unsigned int);
+                char temp[12];
+                int  len = 0;
+
+                do
+                {
+                    temp[len++] = (char)('0' + (value % 10U));
+                    value /= 10U;
+                } while (value && len < (int)sizeof(temp));
+
+                while (len-- && ptr < end)
+                    *ptr++ = temp[len];
+            }
+            else if (*fmt == 'x')
+            {
+                unsigned int value = va_arg(args, unsigned int);
+                char temp[8];
+                int  len = 0;
+
+                do
+                {
+                    unsigned int digit = value & 0xFU;
+                    temp[len++] = (char)(digit < 10U ? ('0' + digit) : ('a' + digit - 10U));
+                    value >>= 4;
                 } while (value && len < (int)sizeof(temp));
 
                 while (len-- && ptr < end)
