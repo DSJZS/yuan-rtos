@@ -205,6 +205,8 @@ yr_err_t yr_task_delete(yr_task_t *task)
     yr_bool_t need_switch = YR_FALSE;
     yr_task_t *current_task = NULL;
 
+    YR_PARAM_CHECK( task == NULL, YR_NULL );
+
     disirq = yr_irq_disable();
 
     current_task = yr_sched_get_current();
@@ -287,6 +289,8 @@ yr_err_t yr_task_suspend( yr_task_t *task)
     yr_bool_t need_switch = YR_FALSE;
     yr_task_t *current_task = NULL;
 
+    YR_PARAM_CHECK( task == NULL, YR_NULL );
+
     disirq = yr_irq_disable();
 
     current_task = yr_sched_get_current();
@@ -319,6 +323,23 @@ yr_err_t yr_task_suspend( yr_task_t *task)
 
     if( need_switch )
         yr_sched_switch();
+
+    return YR_OK;
+}
+
+yr_err_t yr_task_set_priority( yr_task_t *task, yr_uint8_t priority)
+{
+    yr_uint32_t disirq = 0;
+
+    YR_PARAM_CHECK( task == NULL, YR_NULL );
+    YR_PARAM_CHECK( priority >= YR_TASK_MAX_PRIORITY,YR_INVALID );
+
+    disirq = yr_irq_disable();
+
+    task->current_priority = priority;
+    task->priority_mask = (yr_uint32_t)1 << task->current_priority;
+
+    yr_irq_enable(disirq);
 
     return YR_OK;
 }

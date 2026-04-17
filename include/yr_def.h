@@ -34,7 +34,7 @@ typedef enum yr_log_level_t {
     ((yr_uint32_t)(((ms) * YR_TICK_RATE_HZ + 999U) / 1000U))
 
 
-#define YR_WAIT_FOREVER   (yr_uint32_t)(0xFFFFFFFFU)
+#define YR_WAIT_FOREVER     (yr_uint32_t)(0xFFFFFFFFU)
 
 /* 日志输出 */
 #if YR_DEBUG_LOG_ON
@@ -64,6 +64,7 @@ typedef enum yr_log_level_t {
 
 /* 参数检查 */
 #if YR_PARAM_CHECK_ON
+#define YR_RETURN_NONE
 #define YR_PARAM_CHECK( expr, ret) do {                                         \
     if( (expr) ) {                                                              \
         return ret;                                                             \

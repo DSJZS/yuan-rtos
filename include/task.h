@@ -73,5 +73,6 @@ yr_err_t yr_task_sleep_until(yr_uint32_t *pre_ticks, yr_uint32_t inc_ticks);
 yr_err_t yr_task_delete(yr_task_t *task);
 void yr_task_cleanup_defunct(void);
 yr_err_t yr_task_suspend( yr_task_t *task);
+yr_err_t yr_task_set_priority( yr_task_t *task, yr_uint8_t priority);
 
 #endif /* YUAN_RTOS_TASK_H */
