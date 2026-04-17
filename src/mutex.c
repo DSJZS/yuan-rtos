@@ -12,26 +12,7 @@ yr_err_t yr_mutex_init( yr_mutex_t* mutex, yr_uint32_t flag)
     return yr_ipc_init( &mutex->ipc_base, flag);
 }
 
-static void yr_mutex_set_task_priority( yr_task_t *task, yr_uint8_t priority)
-{
-    if( task == NULL || task->current_priority == priority )
-        return;
-
-    switch( task->status ) {
-        case YR_TASK_STATUS_READY:
-        case YR_TASK_STATUS_RUNNING:
-            yr_sched_remove_task( task);
-            yr_task_set_priority( task, priority);
-            yr_sched_insert_task( task);
-            break;
-
-        default:
-            yr_task_set_priority( task, priority);
-            break;
-    }
-}
-
-static void yr_mutex_restore_owner_priority( yr_mutex_t* mutex)
+static void yr_mutex_restore_owner_priority( yr_mutex_t* mutex, yr_bool_t *need_switch)
 {
     yr_uint8_t highest_blocked_priority;
     yr_list_t *blocked_list = mutex->ipc_base.blocked_list.next;
@@ -50,7 +31,7 @@ static void yr_mutex_restore_owner_priority( yr_mutex_t* mutex)
     }
 
     if( highest_blocked_priority != mutex->owner->current_priority ) 
-        yr_mutex_set_task_priority( mutex->owner, highest_blocked_priority);
+        yr_task_ctrl( mutex->owner, YR_TASK_CTL_SET_PRIORITY, &highest_blocked_priority, need_switch);
 }
 
 yr_err_t yr_mutex_delete( yr_mutex_t* mutex)
@@ -70,7 +51,7 @@ yr_err_t yr_mutex_delete( yr_mutex_t* mutex)
 
     if( mutex->owner && mutex->original_priority != YR_MUTEX_PRIO_INVALID &&
         mutex->original_priority != mutex->owner->current_priority ) {
-        yr_mutex_set_task_priority( mutex->owner, mutex->original_priority);
+        yr_task_ctrl( mutex->owner, YR_TASK_CTL_SET_PRIORITY, &mutex->original_priority, &need_switch);
     }
 
     mutex->owner = NULL;
@@ -126,10 +107,10 @@ yr_err_t yr_mutex_take( yr_mutex_t* mutex, yr_uint32_t wait_ticks)
     if( mutex->owner && current_task->current_priority < mutex->owner->current_priority ) {
         if( mutex->original_priority == YR_MUTEX_PRIO_INVALID )
             mutex->original_priority = mutex->owner->current_priority;
-        yr_mutex_set_task_priority( mutex->owner, current_task->current_priority);
+        yr_task_ctrl( mutex->owner, YR_TASK_CTL_SET_PRIORITY, &current_task->current_priority, NULL);
     }
 
-    current_task->sync_notify = YR_TASK_SYNC_NOTIFY_NONE;
+    yr_task_set_block_info( current_task, (void*)&mutex->ipc_base, YR_TASK_BR_IPC, YR_TASK_BN_NONE);
 
     /* 加入信号量的阻塞队列 */
     yr_ipc_block_task( &mutex->ipc_base, current_task);
@@ -147,13 +128,13 @@ yr_err_t yr_mutex_take( yr_mutex_t* mutex, yr_uint32_t wait_ticks)
 
     disirq = yr_irq_disable();
 
-    if( current_task->sync_notify == YR_TASK_SYNC_NOTIFY_WAIT_OK &&
+    if( current_task->block_info.notify == YR_TASK_BN_WAIT_OK &&
         mutex->owner == current_task ) {
         yr_irq_enable(disirq);
         return YR_OK;
     } 
 
-    yr_mutex_restore_owner_priority(mutex);
+    yr_mutex_restore_owner_priority(mutex, NULL);
     yr_irq_enable(disirq);
     return YR_ERR;
 }
@@ -182,7 +163,7 @@ yr_err_t yr_mutex_give( yr_mutex_t* mutex)
 
     if( mutex->hold == 0 ) {
         if( mutex->original_priority != YR_MUTEX_PRIO_INVALID )
-            yr_mutex_set_task_priority( mutex->owner, mutex->original_priority);
+            yr_task_ctrl( mutex->owner, YR_TASK_CTL_SET_PRIORITY, &mutex->original_priority, &need_switch);
         mutex->owner = NULL;
         mutex->original_priority = YR_MUTEX_PRIO_INVALID;   
     } else {
@@ -195,7 +176,7 @@ yr_err_t yr_mutex_give( yr_mutex_t* mutex)
         /* 脱离信号量阻塞队列，停止超时定时器，重新进入调度队列 */
         yr_list_delete_self( &task->list_node);
         task->status = YR_TASK_STATUS_READY;
-        task->sync_notify = YR_TASK_SYNC_NOTIFY_WAIT_OK;
+        yr_task_set_block_info( task, NULL, YR_TASK_BR_NONE, YR_TASK_BN_WAIT_OK);
         yr_timer_stop(&task->timer);
         yr_sched_insert_task( task);
 

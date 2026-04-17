@@ -181,7 +181,7 @@ void yr_timeout_default_func(void *param)
     /* 确保脱离其它模块的控制，比如 IPC 的 blocked_list  */
     yr_list_delete_self(&task->list_node);
     task->status = YR_TASK_STATUS_READY;
-    task->sync_notify = YR_TASK_SYNC_NOTIFY_WAIT_TIMEOUT;
+    yr_task_set_block_info( task, NULL, YR_TASK_BR_NONE, YR_TASK_BN_WAIT_TIMEOUT);
     yr_sched_insert_task(task);
 
     if (current_task != NULL &&

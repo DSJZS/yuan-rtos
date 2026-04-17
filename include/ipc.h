@@ -25,6 +25,7 @@ typedef struct yr_ipc_t {
 yr_err_t yr_ipc_init( yr_ipc_base_t *ipc_base, yr_uint32_t flag);
 yr_err_t yr_ipc_block_task( yr_ipc_base_t *ipc_base, yr_task_t *task);
 yr_err_t yr_ipc_resume_all( yr_ipc_base_t *ipc_base);
+yr_err_t yr_ipc_reorder_blocked_task( yr_ipc_base_t *ipc_base, yr_task_t *task);
 
 #endif /* YR_SUPPORT_IPC */
 

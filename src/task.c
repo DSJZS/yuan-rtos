@@ -2,6 +2,7 @@
 #include "yr_config.h"
 #include "scheduler.h"
 #include "yr_def.h"
+#include "ipc.h"
 
 static void yr_task_exit(void);
 
@@ -32,7 +33,8 @@ yr_err_t yr_task_init( yr_task_t *task, yr_task_func_t entry, void *param, void 
 
     task->status = YR_TASK_STATUS_INIT;
 
-    task->sync_notify = 0;
+    yr_task_set_block_info( task, NULL, YR_TASK_BR_NONE, YR_TASK_BN_NONE);
+
     task->async_notify = 0;
 
     return YR_OK;
@@ -115,6 +117,7 @@ void yr_task_sleep_ticks( yr_uint32_t ticks)
      */
     yr_sched_remove_task( current_task);
     current_task->status = YR_TASK_STATUS_BLOCKED;
+    yr_task_set_block_info( current_task, (void*)&current_task->timer, YR_TASK_BR_SLEEP, YR_TASK_BN_NONE);
 
     yr_timer_stop( &current_task->timer);
     yr_timer_set_ticks( &current_task->timer, ticks);
@@ -327,19 +330,100 @@ yr_err_t yr_task_suspend( yr_task_t *task)
     return YR_OK;
 }
 
-yr_err_t yr_task_set_priority( yr_task_t *task, yr_uint8_t priority)
+yr_err_t yr_task_ctrl( yr_task_t *task, yr_uint32_t cmd, void *arg, yr_bool_t *need_switch)
 {
     yr_uint32_t disirq = 0;
+    yr_task_t *current_task = NULL;
+    yr_uint8_t old_priority = 0;
+    yr_uint8_t priority = 0;
 
-    YR_PARAM_CHECK( task == NULL, YR_NULL );
-    YR_PARAM_CHECK( priority >= YR_TASK_MAX_PRIORITY,YR_INVALID );
+    YR_PARAM_CHECK( task == NULL, YR_NULL);
+    YR_PARAM_CHECK( cmd >= YR_TASK_CTL_CHECK, YR_INVALID);
 
-    disirq = yr_irq_disable();
+    switch (cmd) {
+        case YR_TASK_CTL_GET_STATUS:
+            if (arg) *(yr_uint32_t *)arg = task->status;
+            return YR_OK;
+        case YR_TASK_CTL_GET_PRIORITY:
+            if (arg) *(yr_uint32_t *)arg = task->current_priority;
+            return YR_OK;
+        case YR_TASK_CTL_SET_PRIORITY:
+            YR_PARAM_CHECK( arg == NULL, YR_NULL );
 
-    task->current_priority = priority;
-    task->priority_mask = (yr_uint32_t)1 << task->current_priority;
+            priority = *(yr_uint8_t *)arg;
+            YR_PARAM_CHECK( priority >= YR_TASK_MAX_PRIORITY, YR_INVALID );
 
-    yr_irq_enable(disirq);
+            if( task->current_priority == priority )
+                return YR_OK;
+
+            disirq = yr_irq_disable();
+            current_task = yr_sched_get_current();
+            old_priority = task->current_priority;
+
+            task->current_priority = priority;
+            task->priority_mask = (yr_uint32_t)1 << task->current_priority;
+
+            switch( task->status ) {
+                case YR_TASK_STATUS_READY:
+                case YR_TASK_STATUS_RUNNING:
+                    yr_sched_remove_task( task );
+                    yr_sched_insert_task( task );
+                    break;
+
+                case YR_TASK_STATUS_BLOCKED:
+                    if( task->block_info.reason == YR_TASK_BR_IPC &&
+                        task->block_info.source != NULL )
+                        yr_ipc_reorder_blocked_task( (yr_ipc_base_t *)task->block_info.source, task );
+                    break;
+
+                default:
+                    break;
+            }
+
+            if( need_switch != NULL ) {
+                if( current_task != NULL ) {
+                    if( task == current_task &&
+                        task->status == YR_TASK_STATUS_RUNNING &&
+                        old_priority < priority ) {
+                        *need_switch = YR_TRUE;
+                    } else if( task->status == YR_TASK_STATUS_READY &&
+                               task->current_priority < current_task->current_priority ) {
+                        *need_switch = YR_TRUE;
+                    }
+                }
+            }
+
+            yr_irq_enable(disirq);
+            return YR_OK;
+        default:
+            return YR_INVALID;
+    }
+}
+
+yr_err_t yr_task_set_priority( yr_task_t *task, yr_uint8_t priority)
+{
+    yr_bool_t need_switch = YR_FALSE;
+    yr_err_t result;
+
+    result = yr_task_ctrl( task, YR_TASK_CTL_SET_PRIORITY, &priority, &need_switch );
+    if( result != YR_OK )
+        return result;
+
+    if( need_switch )
+        yr_sched_switch();
+
+    return YR_OK;
+}
+
+yr_err_t yr_task_set_block_info( yr_task_t *task, void *source, yr_uint8_t reason, yr_uint16_t notify)
+{
+    YR_PARAM_CHECK( task == NULL, YR_NULL);
+    YR_PARAM_CHECK( reason >= YR_TASK_BR_CHECK ||
+                    notify >= YR_TASK_BN_CHECK, YR_INVALID);
+
+    task->block_info.source = source;
+    task->block_info.reason = reason;
+    task->block_info.notify = notify;
 
     return YR_OK;
 }

@@ -26,13 +26,33 @@ typedef enum yr_task_status_t {
     YR_TASK_STATUS_DELETED,
 }yr_task_status_t;
 
-typedef enum yr_task_sync_notify_t {
-    YR_TASK_SYNC_NOTIFY_NONE = 0,
-    YR_TASK_SYNC_NOTIFY_WAIT_OK,
-    YR_TASK_SYNC_NOTIFY_WAIT_TIMEOUT,
-    YR_TASK_SYNC_NOTIFY_WAIT_IPC_DELETED,
+typedef enum yr_task_ctl_t {
+    YR_TASK_CTL_GET_STATUS = 0,
+    YR_TASK_CTL_GET_PRIORITY,
+    YR_TASK_CTL_SET_PRIORITY,
+    YR_TASK_CTL_CHECK
+} yr_task_ctl_t;
 
-} yr_task_sync_notify_t;
+typedef enum yr_task_block_reason_t {
+    YR_TASK_BR_NONE = 0,
+    YR_TASK_BR_SLEEP,
+    YR_TASK_BR_IPC,
+    YR_TASK_BR_CHECK,
+} yr_task_block_reason_t;
+
+typedef enum yr_task_block_notify_t {
+    YR_TASK_BN_NONE = 0,
+    YR_TASK_BN_WAIT_OK,
+    YR_TASK_BN_WAIT_TIMEOUT,
+    YR_TASK_BN_WAIT_IPC_DELETED,
+    YR_TASK_BN_CHECK,
+} yr_task_block_notify_t;
+
+typedef struct yr_task_block_t {
+    void *source;
+    yr_uint8_t reason;
+    yr_uint16_t notify;
+} yr_task_block_t;
 
 typedef struct yr_task_t {
     yr_list_t list_node;
@@ -53,10 +73,10 @@ typedef struct yr_task_t {
     
     yr_uint32_t status;
     
-    yr_uint16_t sync_notify;
-    yr_uint16_t async_notify;
-
+    yr_task_block_t block_info;
     yr_timer_t timer;
+
+    yr_uint16_t async_notify;
 } yr_task_t;
 
 typedef void (*yr_task_func_t)(void *param);
@@ -73,6 +93,10 @@ yr_err_t yr_task_sleep_until(yr_uint32_t *pre_ticks, yr_uint32_t inc_ticks);
 yr_err_t yr_task_delete(yr_task_t *task);
 void yr_task_cleanup_defunct(void);
 yr_err_t yr_task_suspend( yr_task_t *task);
+
+yr_err_t yr_task_ctrl( yr_task_t *task, yr_uint32_t cmd, void *arg, yr_bool_t *need_switch);
 yr_err_t yr_task_set_priority( yr_task_t *task, yr_uint8_t priority);
+
+yr_err_t yr_task_set_block_info( yr_task_t *task, void *source, yr_uint8_t reason, yr_uint16_t notify);
 
 #endif /* YUAN_RTOS_TASK_H */
