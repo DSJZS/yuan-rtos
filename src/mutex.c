@@ -1,4 +1,7 @@
 #include "mutex.h"
+
+#if YR_SUPPORT_MUTEX
+
 #include "scheduler.h"
 
 yr_err_t yr_mutex_init( yr_mutex_t* mutex, yr_uint32_t flag)
@@ -196,3 +199,5 @@ yr_err_t yr_mutex_give( yr_mutex_t* mutex)
 
     return YR_OK;
 }
+
+#endif /* YR_SUPPORT_MUTEX */

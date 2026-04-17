@@ -1,6 +1,10 @@
 #ifndef YUAN_RTOS_MUTEX_H
 #define YUAN_RTOS_MUTEX_H
 
+#include "yr_config.h"
+
+#if YR_SUPPORT_MUTEX
+
 #include "ipc.h"
 #include "portable.h"
 #include "task.h"
@@ -19,5 +23,7 @@ yr_err_t yr_mutex_init( yr_mutex_t* mutex, yr_uint32_t flag);
 yr_err_t yr_mutex_delete( yr_mutex_t* mutex);
 yr_err_t yr_mutex_take( yr_mutex_t* mutex, yr_uint32_t wait_ticks);
 yr_err_t yr_mutex_give( yr_mutex_t* mutex);
+
+#endif /* YR_SUPPORT_MUTEX */
 
 #endif /* YUAN_RTOS_MUTEX_H */

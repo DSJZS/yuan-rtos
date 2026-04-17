@@ -12,26 +12,26 @@
 #endif /* YR_DEFAULT_TIME_SLICE_TICKS */
 
 /* 开启调试功能 */
-#ifndef YR_DEBUG_LOG_ON
-#define YR_DEBUG_LOG_ON                 (1)
-#endif /* YR_DEBUG_LOG_ON */
+#ifndef YR_SUPPORT_DEBUG_LOG
+#define YR_SUPPORT_DEBUG_LOG            (1)
+#endif /* YR_SUPPORT_DEBUG_LOG */
 
-#if YR_DEBUG_LOG_ON
+#if YR_SUPPORT_DEBUG_LOG
 /* 调试功能为实现格式化输出需要的缓冲区大小 */
 #ifndef YR_PRINTF_BUF_SIZE
 #define YR_PRINTF_BUF_SIZE              (128)  
 #endif /* YR_PRINTF_BUF_SIZE */
-#endif /* YR_DEBUG_LOG_ON */
+#endif /* YR_SUPPORT_DEBUG_LOG */
 
 /* 开启断言功能 */
-#ifndef YR_ASSERT_ON
-#define YR_ASSERT_ON                    (1)
-#endif /* YR_ASSERT_ON */
+#ifndef YR_SUPPORT_ASSERT
+#define YR_SUPPORT_ASSERT               (1)
+#endif /* YR_SUPPORT_ASSERT */
 
 /* 开启参数检查 */
-#ifndef YR_PARAM_CHECK_ON           
-#define YR_PARAM_CHECK_ON               (1)
-#endif /* YR_PARAM_CHECK_ON */
+#ifndef YR_SUPPORT_PARAM_CHECK           
+#define YR_SUPPORT_PARAM_CHECK          (1)
+#endif /* YR_SUPPORT_PARAM_CHECK */
 
 /* IDLE任务的栈大小 */
 #ifndef YR_IDLE_TASK_STACK_SZIE         
@@ -50,6 +50,11 @@
 #ifndef YR_SUPPORT_SEMAPHORE
 #define YR_SUPPORT_SEMAPHORE            (1)
 #endif /* YR_SUPPORT_SEMAPHORE */
+
+/* 互斥锁是否被支持 */
+#ifndef YR_SUPPORT_MUTEX
+#define YR_SUPPORT_MUTEX                (1)
+#endif /* YR_SUPPORT_MUTEX */
 
 #endif /* YR_SUPPORT_IPC */
 

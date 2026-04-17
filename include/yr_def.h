@@ -37,7 +37,7 @@ typedef enum yr_log_level_t {
 #define YR_WAIT_FOREVER     (yr_uint32_t)(0xFFFFFFFFU)
 
 /* 日志输出 */
-#if YR_DEBUG_LOG_ON
+#if YR_SUPPORT_DEBUG_LOG
 #define YR_DEBUG_LOG(level, fmt, ...) do {                                      \
     const char *log_level =                                                     \
         ((level) == YR_DEBUG_ERROR)  ? "ERR" :                                  \
@@ -46,10 +46,10 @@ typedef enum yr_log_level_t {
 } while (0)
 #else
 #define YR_DEBUG_LOG(level, fmt, ...) ((void)0)
-#endif /* YR_DEBUG_LOG_ON */
+#endif /* YR_SUPPORT_DEBUG_LOG */
 
 /* 断言判断 */
-#if YR_ASSERT_ON
+#if YR_SUPPORT_ASSERT
 #define YR_ASSERT(expr) do {                                                    \
     if( !(expr) ) {                                                             \
         (void)yr_irq_disable();                                                 \
@@ -60,10 +60,10 @@ typedef enum yr_log_level_t {
 } while (0)                                                                     
 #else
 #define YR_ASSERT(expr) ((void)0)
-#endif /* YR_ASSERT_ON */
+#endif /* YR_SUPPORT_ASSERT */
 
 /* 参数检查 */
-#if YR_PARAM_CHECK_ON
+#if YR_SUPPORT_PARAM_CHECK
 #define YR_RETURN_NONE
 #define YR_PARAM_CHECK( expr, ret) do {                                         \
     if( (expr) ) {                                                              \
@@ -72,6 +72,6 @@ typedef enum yr_log_level_t {
 } while(0)
 #else
 #define YR_PARAM_CHECK( expr, ret) ((void)0)
-#endif /* YR_PARAM_CHECK_ON */
+#endif /* YR_SUPPORT_PARAM_CHECK */
 
 #endif /* YUAN_RTOS_DEF_H */

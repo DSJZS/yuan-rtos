@@ -1,6 +1,6 @@
 #include "service.h"
 
-#if YR_DEBUG_LOG_ON
+#if YR_SUPPORT_DEBUG_LOG
 
 #ifndef __weak
 #define __weak __attribute__((weak))
@@ -96,4 +96,4 @@ void yr_printf(const char *fmt, ...)
         yr_putc(buffer[i]);
 }
 
-#endif /* YR_DEBUG_LOG_ON */
+#endif /* YR_SUPPORT_DEBUG_LOG */
