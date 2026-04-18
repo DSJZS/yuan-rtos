@@ -56,6 +56,11 @@
 #define YR_SUPPORT_MUTEX                (1)
 #endif /* YR_SUPPORT_MUTEX */
 
+/* 互斥锁是否被支持 */
+#ifndef YR_SUPPORT_QUEUE
+#define YR_SUPPORT_QUEUE                (1)
+#endif /* YR_SUPPORT_QUEUE */
+
 #endif /* YR_SUPPORT_IPC */
 
 #endif /* YUAN_RTOS_CONFIG_H */

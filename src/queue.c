@@ -1,4 +1,7 @@
 #include "queue.h"
+
+#if YR_SUPPORT_QUEUE
+
 #include "scheduler.h"
 #include <string.h>
 
@@ -245,6 +248,62 @@ yr_err_t yr_queue_receive( yr_queue_t *queue, void *item, yr_uint32_t wait_ticks
     }
 }
 
+yr_err_t yr_queue_send_from_isr( yr_queue_t *queue, void *item, yr_bool_t *need_switch)
+{
+    yr_uint32_t disirq;
+    yr_task_t *current_task;
+
+    YR_PARAM_CHECK( queue == NULL ||
+                    item == NULL, YR_NULL);
+    YR_PARAM_CHECK( queue->send_ipc.is_valid == YR_FALSE ||
+                    queue->receive_ipc.is_valid == YR_FALSE, YR_INVALID);
+
+    disirq = yr_irq_disable();
+    current_task = yr_sched_get_current();
+
+    if( queue->item_count >= queue->capacity ) {
+        yr_irq_enable(disirq);
+        return YR_ERR;
+    }
+
+    __queue_write_item( queue, item );
+
+    if( !yr_list_isempty( &queue->receive_ipc.blocked_list ) ) {
+        __queue_resume_one( &queue->receive_ipc, current_task, need_switch );
+    }
+
+    yr_irq_enable(disirq);
+    return YR_OK;
+}
+
+yr_err_t yr_queue_receive_from_isr( yr_queue_t *queue, void *item, yr_bool_t *need_switch)
+{
+    yr_uint32_t disirq;
+    yr_task_t *current_task;
+
+    YR_PARAM_CHECK( queue == NULL ||
+                    item == NULL, YR_NULL);
+    YR_PARAM_CHECK( queue->send_ipc.is_valid == YR_FALSE ||
+                    queue->receive_ipc.is_valid == YR_FALSE, YR_INVALID);
+
+    disirq = yr_irq_disable();
+    current_task = yr_sched_get_current();
+
+    if( queue->item_count == 0 ) {
+        yr_irq_enable(disirq);
+        return YR_ERR;
+    }
+
+    __queue_read_item( queue, item );
+
+    if( !yr_list_isempty( &queue->send_ipc.blocked_list ) ) {
+        __queue_resume_one( &queue->send_ipc, current_task, need_switch );
+    }
+
+    yr_irq_enable(disirq);
+    return YR_OK;
+}
+
 static void __queue_reset( yr_queue_t *queue)
 {
     queue->head = 0;
@@ -283,7 +342,6 @@ static yr_err_t __queue_resume_one( yr_ipc_base_t *ipc_base, yr_task_t *current_
     yr_task_t *task;
 
     YR_PARAM_CHECK( ipc_base == NULL, YR_NULL );
-    YR_PARAM_CHECK( current_task == NULL, YR_NULL );
 
     if( yr_list_isempty( &ipc_base->blocked_list ) )
         return YR_OK;
@@ -297,9 +355,12 @@ static yr_err_t __queue_resume_one( yr_ipc_base_t *ipc_base, yr_task_t *current_
     yr_sched_insert_task( task );
 
     if( need_switch != NULL &&
+        current_task != NULL &&
         task->current_priority < current_task->current_priority ) {
         *need_switch = YR_TRUE;
     }
 
     return YR_OK;
 }
+
+#endif /* YR_SUPPORT_QUEUE */

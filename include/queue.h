@@ -1,6 +1,10 @@
 #ifndef YUAN_RTOS_QUEUE_H
 #define YUAN_RTOS_QUEUE_H
 
+#include "yr_config.h"
+
+#if YR_SUPPORT_QUEUE
+
 #include "ipc.h"
 #include "portable.h"
 #include "yr_def.h"
@@ -23,5 +27,10 @@ yr_err_t yr_queue_delete( yr_queue_t *queue);
 yr_err_t yr_queue_reset( yr_queue_t *queue);
 yr_err_t yr_queue_send( yr_queue_t *queue, void *item, yr_uint32_t wait_ticks);
 yr_err_t yr_queue_receive( yr_queue_t *queue, void *item, yr_uint32_t wait_ticks);
+
+yr_err_t yr_queue_send_from_isr( yr_queue_t *queue, void *item, yr_bool_t *need_switch);
+yr_err_t yr_queue_receive_from_isr( yr_queue_t *queue, void *item, yr_bool_t *need_switch);
+
+#endif /* YR_SUPPORT_QUEUE */
 
 #endif /* YUAN_RTOS_QUEUE_H */

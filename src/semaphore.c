@@ -4,6 +4,8 @@
 
 #include "scheduler.h"
 
+static yr_err_t __semaphore_resume_one( yr_semaphore_t *sem, yr_task_t *current_task, yr_bool_t *need_switch );
+
 yr_err_t yr_semaphore_init( yr_semaphore_t* sem, yr_uint16_t max_count,yr_uint16_t init_count, yr_uint32_t flag)
 {
     YR_PARAM_CHECK( sem == NULL, YR_NULL);
@@ -105,7 +107,7 @@ yr_err_t yr_semaphore_give( yr_semaphore_t* sem)
 {
     yr_uint32_t disirq;
     yr_bool_t need_switch = YR_FALSE;
-    yr_task_t *task = NULL, *current_task = NULL;
+    yr_task_t *current_task = NULL;
 
     YR_PARAM_CHECK( sem == NULL, YR_NULL);
     YR_PARAM_CHECK( sem->ipc_base.is_valid == YR_FALSE ||
@@ -124,16 +126,7 @@ yr_err_t yr_semaphore_give( yr_semaphore_t* sem)
 
         YR_ASSERT( current_task != NULL );
 
-        task = YR_LIST_ENTRY( sem->ipc_base.blocked_list.next, yr_task_t, list_node);
-        /* 脱离信号量阻塞队列，停止超时定时器，重新进入调度队列 */
-        yr_list_delete_self( &task->list_node);
-        task->status = YR_TASK_STATUS_READY;
-        yr_task_set_msg( task, NULL, NULL, YR_TASK_MR_NONE, YR_TASK_MN_WAIT_OK);
-        yr_timer_stop(&task->timer);
-        yr_sched_insert_task( task);
-
-        if( task->current_priority < current_task->current_priority )
-            need_switch = YR_TRUE;
+        __semaphore_resume_one( sem, current_task, &need_switch );
     } else {
         sem->current_count++;
     }
@@ -142,6 +135,81 @@ yr_err_t yr_semaphore_give( yr_semaphore_t* sem)
 
     if( need_switch )
         yr_sched_switch();
+
+    return YR_OK;
+}
+
+yr_err_t yr_semaphore_take_from_isr( yr_semaphore_t* sem, yr_bool_t *need_switch)
+{
+    yr_uint32_t disirq;
+
+    YR_PARAM_CHECK( sem == NULL, YR_NULL);
+    YR_PARAM_CHECK( sem->ipc_base.is_valid == YR_FALSE ||
+                    sem->max_count == 0, YR_INVALID);
+
+    disirq = yr_irq_disable();
+
+    if( sem->current_count == 0 ) {
+        yr_irq_enable(disirq);
+        return YR_ERR;
+    }
+
+    sem->current_count--;
+
+    yr_irq_enable(disirq);
+    return YR_OK;
+}
+
+yr_err_t yr_semaphore_give_from_isr( yr_semaphore_t* sem, yr_bool_t *need_switch)
+{
+    yr_uint32_t disirq;
+    yr_task_t *current_task;
+
+    YR_PARAM_CHECK( sem == NULL, YR_NULL);
+    YR_PARAM_CHECK( sem->ipc_base.is_valid == YR_FALSE ||
+                    sem->max_count == 0, YR_INVALID);
+
+    disirq = yr_irq_disable();
+
+    if( sem->current_count >= sem->max_count &&
+        yr_list_isempty( &sem->ipc_base.blocked_list ) ) {
+        yr_irq_enable(disirq);
+        return YR_ERR;
+    }
+
+    current_task = yr_sched_get_current();
+
+    if( !yr_list_isempty( &sem->ipc_base.blocked_list ) ) {
+        __semaphore_resume_one( sem, current_task, need_switch );
+    } else {
+        sem->current_count++;
+    }
+
+    yr_irq_enable(disirq);
+    return YR_OK;
+}
+
+static yr_err_t __semaphore_resume_one( yr_semaphore_t *sem, yr_task_t *current_task, yr_bool_t *need_switch )
+{
+    yr_task_t *task;
+
+    YR_PARAM_CHECK( sem == NULL, YR_NULL);
+
+    if( yr_list_isempty( &sem->ipc_base.blocked_list ) )
+        return YR_OK;
+
+    task = YR_LIST_ENTRY( sem->ipc_base.blocked_list.next, yr_task_t, list_node);
+    yr_list_delete_self( &task->list_node);
+    task->status = YR_TASK_STATUS_READY;
+    yr_task_set_msg( task, NULL, NULL, YR_TASK_MR_NONE, YR_TASK_MN_WAIT_OK);
+    yr_timer_stop(&task->timer);
+    yr_sched_insert_task( task);
+
+    if( need_switch != NULL &&
+        current_task != NULL &&
+        task->current_priority < current_task->current_priority ) {
+        *need_switch = YR_TRUE;
+    }
 
     return YR_OK;
 }

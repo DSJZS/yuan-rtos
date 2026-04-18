@@ -20,6 +20,9 @@ yr_err_t yr_semaphore_delete( yr_semaphore_t* sem);
 yr_err_t yr_semaphore_take( yr_semaphore_t* sem, yr_uint32_t wait_ticks);
 yr_err_t yr_semaphore_give( yr_semaphore_t* sem);
 
+yr_err_t yr_semaphore_take_from_isr( yr_semaphore_t* sem, yr_bool_t *need_switch);
+yr_err_t yr_semaphore_give_from_isr( yr_semaphore_t* sem, yr_bool_t *need_switch);
+
 #endif /* YR_SUPPORT_SEMAPHORE */
 
 #endif /* YUAN_RTOS_SEMAPHORE_H */
