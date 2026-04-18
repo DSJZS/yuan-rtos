@@ -16,7 +16,6 @@ typedef struct yr_mutex_t {
     yr_ipc_base_t ipc_base;
     yr_task_t *owner;
     yr_uint8_t hold;    /* 递归锁持有的深度 */
-    yr_uint8_t original_priority;
 } yr_mutex_t;
 
 yr_err_t yr_mutex_init( yr_mutex_t* mutex, yr_uint32_t flag);

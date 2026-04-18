@@ -10,31 +10,8 @@ yr_err_t yr_mutex_init( yr_mutex_t* mutex, yr_uint32_t flag)
 
     mutex->owner = NULL;
     mutex->hold = 0;
-    mutex->original_priority = YR_MUTEX_PRIO_INVALID;
 
     return yr_ipc_init( &mutex->ipc_base, flag);
-}
-
-static void yr_mutex_restore_owner_priority( yr_mutex_t* mutex, yr_bool_t *need_switch)
-{
-    yr_uint8_t highest_blocked_priority;
-    yr_list_t *blocked_list = mutex->ipc_base.blocked_list.next;
-
-    YR_PARAM_CHECK( mutex == NULL ||
-                    mutex->owner == NULL, YR_RETURN_NONE);
-    YR_PARAM_CHECK( mutex->original_priority == YR_MUTEX_PRIO_INVALID, YR_RETURN_NONE);
-
-    highest_blocked_priority = mutex->original_priority;
-
-    while ( blocked_list != &mutex->ipc_base.blocked_list ) {
-        yr_task_t *blocked_node = YR_LIST_ENTRY( blocked_list, yr_task_t, list_node);
-        if ( blocked_node->current_priority < highest_blocked_priority ) 
-            highest_blocked_priority = blocked_node->current_priority;
-        blocked_list = blocked_list->next;
-    }
-
-    if( highest_blocked_priority != mutex->owner->current_priority ) 
-        yr_task_ctrl( mutex->owner, YR_TASK_CTL_SET_PRIORITY, &highest_blocked_priority, need_switch);
 }
 
 yr_err_t yr_mutex_delete( yr_mutex_t* mutex)
@@ -52,14 +29,18 @@ yr_err_t yr_mutex_delete( yr_mutex_t* mutex)
         yr_ipc_resume_all( &mutex->ipc_base);
     }
 
-    if( mutex->owner && mutex->original_priority != YR_MUTEX_PRIO_INVALID &&
-        mutex->original_priority != mutex->owner->current_priority ) {
-        yr_task_ctrl( mutex->owner, YR_TASK_CTL_SET_PRIORITY, &mutex->original_priority, &need_switch);
+    if( mutex->owner != NULL ) {
+        if( mutex->owner->hold_mutex_count > 0 )
+            mutex->owner->hold_mutex_count--;
+
+        if( mutex->owner->hold_mutex_count == 0 &&
+            mutex->owner->current_priority != mutex->owner->init_priority ) {
+            yr_task_ctrl_current( mutex->owner, YR_TASK_CTL_SET_CUR_PRIORITY, &mutex->owner->init_priority, &need_switch);
+        }
     }
 
     mutex->owner = NULL;
     mutex->hold = 0;
-    mutex->original_priority = 0xFF;
     mutex->ipc_base.is_valid = YR_FALSE;
     mutex->ipc_base.flag = YR_IPC_FLAG_NONE;
 
@@ -77,7 +58,7 @@ yr_err_t yr_mutex_take( yr_mutex_t* mutex, yr_uint32_t wait_ticks)
     yr_task_t *current_task = NULL;
     
     YR_PARAM_CHECK( mutex == NULL, YR_NULL);
-    YR_PARAM_CHECK( mutex->ipc_base.is_valid == YR_FALSE, YR_NULL);
+    YR_PARAM_CHECK( mutex->ipc_base.is_valid == YR_FALSE, YR_INVALID);
 
     disirq = yr_irq_disable();
 
@@ -97,7 +78,7 @@ yr_err_t yr_mutex_take( yr_mutex_t* mutex, yr_uint32_t wait_ticks)
     } else if( mutex->owner == NULL && mutex->hold == 0 ) {
         mutex->hold = 1;
         mutex->owner = current_task;
-        mutex->original_priority = current_task->current_priority;
+        current_task->hold_mutex_count++;
         yr_irq_enable(disirq);
         return YR_OK;
     }
@@ -108,9 +89,7 @@ yr_err_t yr_mutex_take( yr_mutex_t* mutex, yr_uint32_t wait_ticks)
     }
 
     if( mutex->owner && current_task->current_priority < mutex->owner->current_priority ) {
-        if( mutex->original_priority == YR_MUTEX_PRIO_INVALID )
-            mutex->original_priority = mutex->owner->current_priority;
-        yr_task_ctrl( mutex->owner, YR_TASK_CTL_SET_PRIORITY, &current_task->current_priority, NULL);
+        yr_task_ctrl_current( mutex->owner, YR_TASK_CTL_SET_CUR_PRIORITY, &current_task->current_priority, NULL);
     }
 
     yr_task_set_block_info( current_task, (void*)&mutex->ipc_base, YR_TASK_BR_IPC, YR_TASK_BN_NONE);
@@ -137,7 +116,6 @@ yr_err_t yr_mutex_take( yr_mutex_t* mutex, yr_uint32_t wait_ticks)
         return YR_OK;
     } 
 
-    yr_mutex_restore_owner_priority(mutex, NULL);
     yr_irq_enable(disirq);
     return YR_ERR;
 }
@@ -149,7 +127,7 @@ yr_err_t yr_mutex_give( yr_mutex_t* mutex)
     yr_task_t *task = NULL, *current_task = NULL;
 
     YR_PARAM_CHECK( mutex == NULL, YR_NULL);
-    YR_PARAM_CHECK( mutex->ipc_base.is_valid == YR_FALSE, YR_NULL);
+    YR_PARAM_CHECK( mutex->ipc_base.is_valid == YR_FALSE, YR_INVALID);
 
     disirq = yr_irq_disable();
 
@@ -165,10 +143,14 @@ yr_err_t yr_mutex_give( yr_mutex_t* mutex)
         mutex->hold--;
 
     if( mutex->hold == 0 ) {
-        if( mutex->original_priority != YR_MUTEX_PRIO_INVALID )
-            yr_task_ctrl( mutex->owner, YR_TASK_CTL_SET_PRIORITY, &mutex->original_priority, &need_switch);
+        if( current_task->hold_mutex_count > 0 )
+            current_task->hold_mutex_count--;
+
+        if( current_task->hold_mutex_count == 0 &&
+            current_task->current_priority != current_task->init_priority ) {
+            yr_task_ctrl_current( current_task, YR_TASK_CTL_SET_CUR_PRIORITY, &current_task->init_priority, &need_switch);
+        }
         mutex->owner = NULL;
-        mutex->original_priority = YR_MUTEX_PRIO_INVALID;   
     } else {
         yr_irq_enable(disirq);
         return YR_OK;
@@ -185,8 +167,8 @@ yr_err_t yr_mutex_give( yr_mutex_t* mutex)
 
         /* 将锁的资源交给新任务 */
         mutex->owner = task;
-        mutex->original_priority = task->current_priority;
         mutex->hold = 1;
+        task->hold_mutex_count++;
 
         if( task->current_priority < current_task->current_priority )
             need_switch = YR_TRUE;

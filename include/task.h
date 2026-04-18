@@ -26,12 +26,12 @@ typedef enum yr_task_status_t {
     YR_TASK_STATUS_DELETED,
 }yr_task_status_t;
 
-typedef enum yr_task_ctl_t {
-    YR_TASK_CTL_GET_STATUS = 0,
-    YR_TASK_CTL_GET_PRIORITY,
-    YR_TASK_CTL_SET_PRIORITY,
-    YR_TASK_CTL_CHECK
-} yr_task_ctl_t;
+typedef enum yr_task_ctl_current_t {
+    YR_TASK_CTL_GET_CUR_STATUS = 0,
+    YR_TASK_CTL_GET_CUR_PRIORITY,
+    YR_TASK_CTL_SET_CUR_PRIORITY,
+    YR_TASK_CTL_CUR_CHECK
+} yr_task_ctl_current_t;
 
 typedef enum yr_task_block_reason_t {
     YR_TASK_BR_NONE = 0,
@@ -59,7 +59,6 @@ typedef struct yr_task_t {
 
     void *sp;
     void *entry;
-    // void* exit;
     void *param;
     void *stack_addr;
     yr_uint32_t stack_size;
@@ -73,10 +72,9 @@ typedef struct yr_task_t {
     
     yr_uint32_t status;
     
+    yr_uint8_t hold_mutex_count;
     yr_task_block_t block_info;
     yr_timer_t timer;
-
-    yr_uint16_t async_notify;
 } yr_task_t;
 
 typedef void (*yr_task_func_t)(void *param);
@@ -85,18 +83,23 @@ typedef void (*yr_task_func_t)(void *param);
 yr_err_t yr_task_init( yr_task_t *task, yr_task_func_t entry, void *param, void *stack_addr, yr_uint32_t stack_size, yr_uint8_t priority, yr_uint32_t ticks);
 /* 初始化任务，与 yr_task_init 的区别是使用默认时间片长度，建议没有特殊需求的话使用这个函数初始化任务 */
 yr_err_t yr_task_create( yr_task_t *task, yr_task_func_t entry, void *param, void *stack_addr, yr_uint32_t stack_size, yr_uint8_t priority);
-
+/* 删除任务 */
+yr_err_t yr_task_delete(yr_task_t *task);
 /* 将任务交由调度器管理 */
 yr_err_t yr_task_start( yr_task_t *task);
-void yr_task_sleep_ticks( yr_uint32_t ticks);
-yr_err_t yr_task_sleep_until(yr_uint32_t *pre_ticks, yr_uint32_t inc_ticks);
-yr_err_t yr_task_delete(yr_task_t *task);
-void yr_task_cleanup_defunct(void);
+/* 暂停任务 */
 yr_err_t yr_task_suspend( yr_task_t *task);
-
-yr_err_t yr_task_ctrl( yr_task_t *task, yr_uint32_t cmd, void *arg, yr_bool_t *need_switch);
+/* 相对延时 */
+void yr_task_sleep_ticks( yr_uint32_t ticks);
+/* 周期延时 */
+yr_err_t yr_task_sleep_until(yr_uint32_t *pre_ticks, yr_uint32_t inc_ticks);
+/* 清理僵尸任务 */
+void yr_task_cleanup_defunct(void);
+/* 控制任务的当前状态 */
+yr_err_t yr_task_ctrl_current( yr_task_t *task, yr_uint32_t cmd, void *arg, yr_bool_t *need_switch);
+/* 修改任务优先级 */
 yr_err_t yr_task_set_priority( yr_task_t *task, yr_uint8_t priority);
-
+/* 设置任务阻塞信息 */
 yr_err_t yr_task_set_block_info( yr_task_t *task, void *source, yr_uint8_t reason, yr_uint16_t notify);
 
 #endif /* YUAN_RTOS_TASK_H */
