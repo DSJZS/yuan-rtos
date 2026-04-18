@@ -72,7 +72,7 @@ yr_err_t yr_semaphore_take( yr_semaphore_t* sem, yr_uint32_t wait_ticks)
     current_task = yr_sched_get_current();
     YR_ASSERT( current_task != NULL );
 
-    yr_task_set_block_info( current_task, (void*)&sem->ipc_base, YR_TASK_BR_IPC, YR_TASK_BN_NONE);
+    yr_task_set_msg( current_task, (void*)&sem->ipc_base, NULL, YR_TASK_MR_IPC, YR_TASK_MN_NONE);
 
     /* 加入信号量的阻塞队列 */
     yr_ipc_block_task( &sem->ipc_base, current_task);
@@ -91,7 +91,7 @@ yr_err_t yr_semaphore_take( yr_semaphore_t* sem, yr_uint32_t wait_ticks)
     /* 阻塞结束返回到这里 */
     disirq = yr_irq_disable();
 
-    if( current_task->block_info.notify == YR_TASK_BN_WAIT_OK ) {
+    if( current_task->msg_info.notify == YR_TASK_MN_WAIT_OK ) {
         yr_irq_enable(disirq);
         return YR_OK;
     }
@@ -128,7 +128,7 @@ yr_err_t yr_semaphore_give( yr_semaphore_t* sem)
         /* 脱离信号量阻塞队列，停止超时定时器，重新进入调度队列 */
         yr_list_delete_self( &task->list_node);
         task->status = YR_TASK_STATUS_READY;
-        yr_task_set_block_info( task, NULL, YR_TASK_BR_NONE, YR_TASK_BN_WAIT_OK);
+        yr_task_set_msg( task, NULL, NULL, YR_TASK_MR_NONE, YR_TASK_MN_WAIT_OK);
         yr_timer_stop(&task->timer);
         yr_sched_insert_task( task);
 

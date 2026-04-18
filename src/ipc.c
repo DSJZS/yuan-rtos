@@ -86,7 +86,7 @@ yr_err_t yr_ipc_resume_all( yr_ipc_base_t *ipc_base)
         yr_list_delete_self(&task->list_node);
         yr_timer_stop(&task->timer);
         task->status = YR_TASK_STATUS_READY;
-        yr_task_set_block_info( task, NULL, YR_TASK_BR_NONE, YR_TASK_BN_WAIT_IPC_DELETED);
+        yr_task_set_msg( task, NULL, NULL, YR_TASK_MR_NONE, YR_TASK_MN_WAIT_IPC_DELETED);
         yr_sched_insert_task( task);
 
         yr_irq_enable(disirq);

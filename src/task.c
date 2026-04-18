@@ -36,7 +36,7 @@ yr_err_t yr_task_init( yr_task_t *task, yr_task_func_t entry, void *param, void 
 
     task->status = YR_TASK_STATUS_INIT;
 
-    yr_task_set_block_info( task, NULL, YR_TASK_BR_NONE, YR_TASK_BN_NONE);
+    yr_task_set_msg( task, NULL, NULL, YR_TASK_MR_NONE, YR_TASK_MN_NONE);
 
     return YR_OK;
 }
@@ -118,7 +118,7 @@ void yr_task_sleep_ticks( yr_uint32_t ticks)
      */
     yr_sched_remove_task( current_task);
     current_task->status = YR_TASK_STATUS_BLOCKED;
-    yr_task_set_block_info( current_task, (void*)&current_task->timer, YR_TASK_BR_SLEEP, YR_TASK_BN_NONE);
+    yr_task_set_msg( current_task, (void*)&current_task->timer, NULL, YR_TASK_MR_SLEEP, YR_TASK_MN_NONE);
 
     yr_timer_stop( &current_task->timer);
     yr_timer_set_ticks( &current_task->timer, ticks);
@@ -308,9 +308,9 @@ yr_err_t yr_task_ctrl_current( yr_task_t *task, yr_uint32_t cmd, void *arg, yr_b
                     break;
 
                 case YR_TASK_STATUS_BLOCKED:
-                    if( task->block_info.reason == YR_TASK_BR_IPC &&
-                        task->block_info.source != NULL )
-                        yr_ipc_reorder_blocked_task( (yr_ipc_base_t *)task->block_info.source, task );
+                    if( task->msg_info.reason == YR_TASK_MR_IPC &&
+                        task->msg_info.source != NULL )
+                        yr_ipc_reorder_blocked_task( (yr_ipc_base_t *)task->msg_info.source, task );
                     break;
 
                 default:
@@ -368,15 +368,16 @@ yr_err_t yr_task_set_priority( yr_task_t *task, yr_uint8_t priority)
     return YR_OK;
 }
 
-yr_err_t yr_task_set_block_info( yr_task_t *task, void *source, yr_uint8_t reason, yr_uint16_t notify)
+yr_err_t yr_task_set_msg( yr_task_t *task, void *source, void *msg, yr_uint8_t reason, yr_uint16_t notify)
 {
     YR_PARAM_CHECK( task == NULL, YR_NULL);
-    YR_PARAM_CHECK( reason >= YR_TASK_BR_CHECK ||
-                    notify >= YR_TASK_BN_CHECK, YR_INVALID);
+    YR_PARAM_CHECK( reason >= YR_TASK_MR_CHECK ||
+                    notify >= YR_TASK_MN_CHECK, YR_INVALID);
 
-    task->block_info.source = source;
-    task->block_info.reason = reason;
-    task->block_info.notify = notify;
+    task->msg_info.source = source;
+    task->msg_info.msg = msg;
+    task->msg_info.reason = reason;
+    task->msg_info.notify = notify;
 
     return YR_OK;
 }
