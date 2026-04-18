@@ -47,6 +47,7 @@ yr_err_t yr_semaphore_delete( yr_semaphore_t* sem)
 }
 
 /* 获取者尝试获取信号量，如果没有则最多阻塞指定的时间 ticks */
+/* 普通任务上下文下获取信号量，必要时阻塞等待 */
 yr_err_t yr_semaphore_take( yr_semaphore_t* sem, yr_uint32_t wait_ticks)
 {
     yr_uint32_t disirq = 0;
@@ -103,6 +104,7 @@ yr_err_t yr_semaphore_take( yr_semaphore_t* sem, yr_uint32_t wait_ticks)
 }
 
 /* 释放信号量，如果达到最大值直接返回错误(因为理论上在合理的使用环境下信号量不应该超过上限) */
+/* 普通任务上下文下释放信号量，必要时唤醒等待任务 */
 yr_err_t yr_semaphore_give( yr_semaphore_t* sem)
 {
     yr_uint32_t disirq;
@@ -139,6 +141,7 @@ yr_err_t yr_semaphore_give( yr_semaphore_t* sem)
     return YR_OK;
 }
 
+/* 中断上下文下获取信号量，不允许阻塞 */
 yr_err_t yr_semaphore_take_from_isr( yr_semaphore_t* sem, yr_bool_t *need_switch)
 {
     yr_uint32_t disirq;
@@ -160,6 +163,7 @@ yr_err_t yr_semaphore_take_from_isr( yr_semaphore_t* sem, yr_bool_t *need_switch
     return YR_OK;
 }
 
+/* 中断上下文下释放信号量，不允许阻塞 */
 yr_err_t yr_semaphore_give_from_isr( yr_semaphore_t* sem, yr_bool_t *need_switch)
 {
     yr_uint32_t disirq;
@@ -189,6 +193,7 @@ yr_err_t yr_semaphore_give_from_isr( yr_semaphore_t* sem, yr_bool_t *need_switch
     return YR_OK;
 }
 
+/* 恢复一个等待该信号量的任务 */
 static yr_err_t __semaphore_resume_one( yr_semaphore_t *sem, yr_task_t *current_task, yr_bool_t *need_switch )
 {
     yr_task_t *task;

@@ -16,7 +16,7 @@ typedef struct yr_context_t {
     yr_cpu_stack_t r10;
     yr_cpu_stack_t r11;
 
-    /* Hardware-stacked on exception entry */
+    /* 异常进入时由硬件自动压栈的寄存器 */
     yr_cpu_stack_t r0;
     yr_cpu_stack_t r1;
     yr_cpu_stack_t r2;
@@ -28,10 +28,12 @@ typedef struct yr_context_t {
 } yr_context_t;
 
 /**
- * @brief Initialize thread stack frame for first run.
- * @param entry Thread entry function.
- * @param stackaddr Stack top (high address end).
- * @return New PSP value after frame placement.
+ * @brief 初始化任务首次运行所需的栈帧。
+ * @param entry 任务入口函数。
+ * @param exit 任务退出时跳转的函数。
+ * @param param 传递给任务入口函数的参数。
+ * @param stackaddr 栈顶地址。
+ * @return 初始化后的 PSP 值。
  */
 yr_uint8_t *yr_task_stack_init( void *entry, void *exit,  void *param, yr_uint8_t *stackaddr)
 {
@@ -41,28 +43,27 @@ yr_uint8_t *yr_task_stack_init( void *entry, void *exit,  void *param, yr_uint8_
 
     psp = stackaddr;
 
-    /* 8-byte align per ARM procedure call & exception entry requirements. */
-    /* aligned = value & ~(align - 1) */
+    /* 按 ARM 调用规范做 8 字节对齐 */
     psp = (yr_uint8_t *)( ((yr_cpu_stack_t)psp) & ~((8) - 1) );  
 
-     /* Reserve space for initial context frame */
+     /* 预留初始上下文栈帧空间 */
     psp -= sizeof(yr_context_t);
     pstack = (yr_context_t *)psp;
 
-    /* Clear frame area */
+    /* 清空初始上下文内容 */
     for (i = 0; i < 16; i++)
         ((yr_cpu_stack_t *)pstack)[i] = 0;
 
     pstack->r0 = (yr_cpu_stack_t)param;
-    pstack->psr = 0x01000000UL;             /* Default xPSR (Thumb bit set) */
-    pstack->pc_r15  = (yr_cpu_stack_t)entry;    /* Entry point */
-    pstack->lr_r14  = (yr_cpu_stack_t)exit;     /* If thread function returns */
+    pstack->psr = 0x01000000UL;                 /* 默认 xPSR，确保 Thumb 位有效 */
+    pstack->pc_r15  = (yr_cpu_stack_t)entry;    /* 任务首次运行入口 */
+    pstack->lr_r14  = (yr_cpu_stack_t)exit;     /* 任务函数返回后的出口 */
 
     return psp;
 }
 
+/* 利用编译器内建指令查找最低位的 1 */
 int yr_find_first_set(int value)
 {
     return __builtin_ffs(value);
 }
-

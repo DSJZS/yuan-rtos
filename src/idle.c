@@ -10,8 +10,8 @@ void yr_idle_task_entry(void *param)
     yr_task_cleanup_defunct();
     
     for(;;) {
-        /* do nothing */
-        /* 可以在这里设置进入睡眠模式以降低功耗 */
+        /* 空闲任务保持常驻，不允许返回 */
+        /* 可在这里进入低功耗模式以降低功耗 */
     }
 }
 

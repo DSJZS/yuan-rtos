@@ -7,7 +7,8 @@
 #endif
 
 /**
- * @brief Weak putc hook (user may override for UART / SWO / etc.).
+ * @brief 弱定义的字符输出钩子，用户可在 BSP 中重写。
+ * @param c 待输出字符。
  */
 __weak void yr_putc(char c)
 {
@@ -15,16 +16,17 @@ __weak void yr_putc(char c)
 }
 
 /**
- * @brief Very small vsnprintf-like formatter (supports %d %u %x %s %c).
- * @param buffer Output buffer.
- * @param size Buffer size (including terminator).
- * @param fmt Format string.
- * @param args Vararg list.
+ * @brief 轻量级格式化函数，支持 %d %u %x %s %c。
+ * @param buffer 输出缓冲区。
+ * @param size 缓冲区大小，包含结尾的 '\0'。
+ * @param fmt 格式字符串。
+ * @param args 可变参数列表。
+ * @return 实际写入的字符数，不包含结尾的 '\0'。
  */
 int yr_vsnprintf(char *buffer, size_t size, const char *fmt, va_list args)
 {
     char *ptr       = buffer;
-    const char *end = buffer + size - 1; /* Preserve space for NUL */
+    const char *end = buffer + size - 1; /* 预留字符串结尾的 '\0' */
 
     while (*fmt && ptr < end)
     {
@@ -111,7 +113,9 @@ int yr_vsnprintf(char *buffer, size_t size, const char *fmt, va_list args)
 }
 
 /**
- * @brief Lightweight printf forwarding to s_putc().
+ * @brief 轻量级 printf，逐字符转发到 yr_putc。
+ * @param fmt 格式字符串。
+ * @param ... 可变参数列表。
  */
 void yr_printf(const char *fmt, ...)
 {

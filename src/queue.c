@@ -81,6 +81,7 @@ yr_err_t yr_queue_delete( yr_queue_t *queue)
     return YR_OK;
 }
 
+/* 发送方与接收方都无人等待时，直接重置环形队列状态 */
 yr_err_t yr_queue_reset( yr_queue_t *queue)
 {
     yr_uint32_t disirq;
@@ -105,6 +106,7 @@ yr_err_t yr_queue_reset( yr_queue_t *queue)
     return YR_OK;
 }
 
+/* 普通任务上下文下发送消息，必要时阻塞等待空位 */
 yr_err_t yr_queue_send( yr_queue_t *queue, void *item, yr_uint32_t wait_ticks)
 {
     yr_uint32_t disirq;
@@ -177,6 +179,7 @@ yr_err_t yr_queue_send( yr_queue_t *queue, void *item, yr_uint32_t wait_ticks)
     }
 }
 
+/* 普通任务上下文下接收消息，必要时阻塞等待数据 */
 yr_err_t yr_queue_receive( yr_queue_t *queue, void *item, yr_uint32_t wait_ticks)
 {
     yr_uint32_t disirq;
@@ -248,6 +251,7 @@ yr_err_t yr_queue_receive( yr_queue_t *queue, void *item, yr_uint32_t wait_ticks
     }
 }
 
+/* 中断上下文下发送消息，只做原子写入与唤醒，不允许阻塞 */
 yr_err_t yr_queue_send_from_isr( yr_queue_t *queue, void *item, yr_bool_t *need_switch)
 {
     yr_uint32_t disirq;
@@ -276,6 +280,7 @@ yr_err_t yr_queue_send_from_isr( yr_queue_t *queue, void *item, yr_bool_t *need_
     return YR_OK;
 }
 
+/* 中断上下文下接收消息，只做原子读取与唤醒，不允许阻塞 */
 yr_err_t yr_queue_receive_from_isr( yr_queue_t *queue, void *item, yr_bool_t *need_switch)
 {
     yr_uint32_t disirq;
@@ -304,6 +309,7 @@ yr_err_t yr_queue_receive_from_isr( yr_queue_t *queue, void *item, yr_bool_t *ne
     return YR_OK;
 }
 
+/* 将队列读写游标恢复到初始状态 */
 static void __queue_reset( yr_queue_t *queue)
 {
     queue->head = 0;
@@ -311,6 +317,7 @@ static void __queue_reset( yr_queue_t *queue)
     queue->item_count = 0;
 }
 
+/* 向 tail 位置写入一个元素，然后推进写指针 */
 static void __queue_write_item( yr_queue_t *queue, const void *item )
 {
     yr_uint8_t *dst = queue->buffer + queue->tail * queue->item_size;
@@ -324,6 +331,7 @@ static void __queue_write_item( yr_queue_t *queue, const void *item )
     queue->item_count++;
 }
 
+/* 从 head 位置读出一个元素，然后推进读指针 */
 static void __queue_read_item( yr_queue_t *queue, void *item )
 {
     yr_uint8_t *src = queue->buffer + queue->head * queue->item_size;
@@ -337,6 +345,7 @@ static void __queue_read_item( yr_queue_t *queue, void *item )
     queue->item_count--;
 }
 
+/* 恢复一个等待队列状态变化的任务 */
 static yr_err_t __queue_resume_one( yr_ipc_base_t *ipc_base, yr_task_t *current_task, yr_bool_t *need_switch )
 {
     yr_task_t *task;

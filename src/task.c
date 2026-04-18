@@ -405,7 +405,7 @@ static void __task_exit(void)
 
     for (;;)
     {
-        /* do nothing */;
+        /* 不应再返回到这里，仅作为安全兜底 */
     }
 }
 

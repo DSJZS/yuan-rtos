@@ -80,27 +80,98 @@ typedef struct yr_task_t {
 
 typedef void (*yr_task_func_t)(void *param);
 
-/* 初始化任务 */
+/**
+ * @brief 初始化任务对象。
+ * @param task 任务对象指针。
+ * @param entry 任务入口函数。
+ * @param param 传递给任务入口函数的参数。
+ * @param stack_addr 任务栈起始地址。
+ * @param stack_size 任务栈大小。
+ * @param priority 初始优先级。
+ * @param ticks 初始时间片长度。
+ * @return 初始化结果。
+ */
 yr_err_t yr_task_init( yr_task_t *task, yr_task_func_t entry, void *param, void *stack_addr, yr_uint32_t stack_size, yr_uint8_t priority, yr_uint32_t ticks);
-/* 初始化任务，与 yr_task_init 的区别是使用默认时间片长度，建议没有特殊需求的话使用这个函数初始化任务 */
+
+/**
+ * @brief 初始化任务对象并使用默认时间片长度。
+ * @param task 任务对象指针。
+ * @param entry 任务入口函数。
+ * @param param 传递给任务入口函数的参数。
+ * @param stack_addr 任务栈起始地址。
+ * @param stack_size 任务栈大小。
+ * @param priority 初始优先级。
+ * @return 初始化结果。
+ */
 yr_err_t yr_task_create( yr_task_t *task, yr_task_func_t entry, void *param, void *stack_addr, yr_uint32_t stack_size, yr_uint8_t priority);
-/* 删除任务 */
+
+/**
+ * @brief 删除任务。
+ * @param task 任务对象指针。
+ * @return 操作结果。
+ */
 yr_err_t yr_task_delete(yr_task_t *task);
-/* 将任务交由调度器管理 */
+
+/**
+ * @brief 启动任务并交由调度器管理。
+ * @param task 任务对象指针。
+ * @return 操作结果。
+ */
 yr_err_t yr_task_start( yr_task_t *task);
-/* 暂停任务 */
+
+/**
+ * @brief 挂起任务。
+ * @param task 任务对象指针。
+ * @return 操作结果。
+ */
 yr_err_t yr_task_suspend( yr_task_t *task);
-/* 相对延时 */
+
+/**
+ * @brief 让当前任务相对延时指定 tick 数。
+ * @param ticks 延时 tick 数。
+ */
 void yr_task_sleep_ticks( yr_uint32_t ticks);
-/* 周期延时 */
+
+/**
+ * @brief 让当前任务按周期方式延时。
+ * @param pre_ticks 上一次唤醒时刻记录值。
+ * @param inc_ticks 周期增量 tick 数。
+ * @return 操作结果。
+ */
 yr_err_t yr_task_sleep_until(yr_uint32_t *pre_ticks, yr_uint32_t inc_ticks);
-/* 清理僵尸任务 */
+
+/**
+ * @brief 清理已终止但尚未彻底删除的任务。
+ */
 void yr_task_cleanup_defunct(void);
-/* 控制任务的当前状态 */
+
+/**
+ * @brief 获取或修改任务的当前控制信息。
+ * @param task 任务对象指针。
+ * @param cmd 控制命令。
+ * @param arg 命令参数。
+ * @param need_switch 若操作导致需要切换任务则置为 YR_TRUE。
+ * @return 操作结果。
+ */
 yr_err_t yr_task_ctrl_current( yr_task_t *task, yr_uint32_t cmd, void *arg, yr_bool_t *need_switch);
-/* 修改任务优先级 */
+
+/**
+ * @brief 修改任务初始优先级。
+ * @param task 任务对象指针。
+ * @param priority 新优先级。
+ * @return 操作结果。
+ */
 yr_err_t yr_task_set_priority( yr_task_t *task, yr_uint8_t priority);
-/* 设置任务阻塞信息 */
+
+/**
+ * @brief 设置任务的阻塞消息信息。
+ * @param task 任务对象指针。
+ * @param source 消息来源对象。
+ * @param msg 附加消息指针。
+ * @param reason 阻塞原因。
+ * @param notify 唤醒通知类型。
+ * @return 操作结果。
+ */
 yr_err_t yr_task_set_msg( yr_task_t *task, void *source, void *msg, yr_uint8_t reason, yr_uint16_t notify);
 
 #endif /* YUAN_RTOS_TASK_H */
