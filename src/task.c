@@ -308,9 +308,11 @@ yr_err_t yr_task_ctrl_current( yr_task_t *task, yr_uint32_t cmd, void *arg, yr_b
                     break;
 
                 case YR_TASK_STATUS_BLOCKED:
+#if YR_SUPPORT_IPC
                     if( task->msg_info.reason == YR_TASK_MR_IPC &&
                         task->msg_info.source != NULL )
                         yr_ipc_reorder_blocked_task( (yr_ipc_base_t *)task->msg_info.source, task );
+#endif /* YR_SUPPORT_IPC */
                     break;
 
                 default:
