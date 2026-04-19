@@ -180,7 +180,7 @@ For extremely resource-constrained environments, `-Os` is recommended. It is als
 
 ## Porting
 
-Porting Yuan RTOS to a new platform mainly requires two parts.
+Porting Yuan RTOS to a new platform mainly requires two parts. For detailed methods, please read [`docs/YuanRTOS_API.md`](docs/YuanRTOS_API.md)。
 
 ### 1. Implement the porting-layer interfaces
 

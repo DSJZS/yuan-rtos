@@ -177,7 +177,7 @@ void SysTick_Handler(void)
 
 ## 移植
 
-移植到新平台时，主要需要完成两部分工作。
+移植到新平台时，主要需要完成两部分工作。详细的方法请阅读 [`docs/YuanRTOS_API.md`](docs/YuanRTOS_API.md)。
 
 ### 1. 实现移植层接口
 
