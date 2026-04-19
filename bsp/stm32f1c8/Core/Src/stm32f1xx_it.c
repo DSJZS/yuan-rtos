@@ -188,10 +188,16 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
+
+  /* 往队列中写入数据，供任务读取 */
   result = yr_queue_send_from_isr( &queue0, &send, &need_switch);
   if( result == YR_OK )
     send++;
+
+  /* 节拍回调函数 */
   yr_tick_update();
+  
+  /* 写入队列导致高优先级任务唤醒，需要切换任务 */
   if( need_switch )
     yr_sched_switch();
   /* USER CODE END SysTick_IRQn 1 */

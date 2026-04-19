@@ -39,6 +39,7 @@ yr_mutex_t mux0;
 yr_queue_t queue0;
 yr_uint8_t queue0_buffer[256];
 
+/* 任务入口 */
 void task_entry(void *param)
 {
   int index = (int)param;
@@ -47,16 +48,20 @@ void task_entry(void *param)
   yr_uint32_t pre_ticks = 0;
 
   for(;;) {
+    /* 从队列中读取数据，数据来自 Systick 中断 */
     yr_queue_receive( &queue0, &receive, YR_WAIT_FOREVER);
+    /* 使用互斥锁确保日志能够正常的通过串口打印 */
     yr_mutex_take( &mux0, YR_WAIT_FOREVER);
     YR_DEBUG_LOG( YR_DEBUG_INFO, "task %d : count = %d, receive = %d\r\n", index, count++, receive);
     yr_mutex_give( &mux0);
+    /* 周期延时 */
     yr_task_sleep_until( &pre_ticks, YR_MS_TO_TICKS(1000 - index * 100));
   }
 }
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+/* 定义日志打印底层所需的函数 */
 void yr_putc(char c)
 {
   HAL_UART_Transmit(&huart1, (uint8_t *)&c, 1, HAL_MAX_DELAY);
@@ -73,8 +78,10 @@ int main(void)
 
   YR_DEBUG_LOG(YR_DEBUG_INFO, "Start\r\n");
 
+  /* 初始化内核 */
   yr_kernel_init();
 
+  /* 初始化互斥锁、队列、任务 */
   yr_mutex_init( &mux0, YR_IPC_FLAG_PRIO);
   yr_queue_init( &queue0, sizeof(int), queue0_buffer, sizeof(queue0_buffer), YR_IPC_FLAG_PRIO);
   yr_task_create( &task0, task_entry, (void *)0, task0_stack,sizeof(task0_stack), 0);
@@ -82,12 +89,16 @@ int main(void)
   yr_task_create( &task2, task_entry, (void *)2, task2_stack,sizeof(task2_stack), 2);
   yr_task_create( &task3, task_entry, (void *)3, task3_stack,sizeof(task3_stack), 3);
 
+  /* 启动任务 */
   yr_task_start( &task0);
   yr_task_start( &task1);
   yr_task_start( &task2);
   yr_task_start( &task3);
 
+  /* 启动内核 */
   yr_kernel_start();
+
+  /* main 函数调用链会被破坏，不再返回到这里 */
 
   while (1)
   {

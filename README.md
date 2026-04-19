@@ -2,7 +2,7 @@
 **English** | [中文](README_zh.md)
 # Yuan RTOS Overview
 
-Yuan RTOS is a lightweight real-time operating system mainly targeting Cortex-M MCUs. It is designed to provide priority-based and time-slice-based multitasking, timers, and the most basic IPC framework with relatively low resource usage.
+Yuan RTOS is a lightweight real-time operating system mainly targeting Cortex-M MCUs. It is designed to provide priority-based and time-slice-based task scheduling, timers, and a basic IPC framework while keeping resource usage low.
 
 ## Features
 

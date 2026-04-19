@@ -7,6 +7,7 @@ yr_uint32_t yr_next_task_sp_p;
 yr_uint32_t yr_switch_flag;
 
 typedef struct yr_context_t {
+    /* 低位，由软件手动写入寄存器 */
     yr_cpu_stack_t r4;
     yr_cpu_stack_t r5;
     yr_cpu_stack_t r6;
@@ -16,7 +17,7 @@ typedef struct yr_context_t {
     yr_cpu_stack_t r10;
     yr_cpu_stack_t r11;
 
-    /* 异常进入时由硬件自动压栈的寄存器 */
+    /* 高位，异常进入时由硬件自动压栈的寄存器 */
     yr_cpu_stack_t r0;
     yr_cpu_stack_t r1;
     yr_cpu_stack_t r2;
@@ -54,7 +55,7 @@ yr_uint8_t *yr_task_stack_init( void *entry, void *exit,  void *param, yr_uint8_
     for (i = 0; i < 16; i++)
         ((yr_cpu_stack_t *)pstack)[i] = 0;
 
-    pstack->r0 = (yr_cpu_stack_t)param;
+    pstack->r0 = (yr_cpu_stack_t)param;         /* 根据约定，函数的第一个参数写入 R0 寄存器 */
     pstack->psr = 0x01000000UL;                 /* 默认 xPSR，确保 Thumb 位有效 */
     pstack->pc_r15  = (yr_cpu_stack_t)entry;    /* 任务首次运行入口 */
     pstack->lr_r14  = (yr_cpu_stack_t)exit;     /* 任务函数返回后的出口 */
