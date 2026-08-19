@@ -1,4 +1,4 @@
-![Yuan](docs/images/YuanLogo.jpg)  
+![Yuan](assets/YuanLogo.jpg)  
 [English](README.md) | **中文** 
 # Yuan RTOS 简介  
   
@@ -177,7 +177,7 @@ void SysTick_Handler(void)
 
 ## 移植
 
-移植到新平台时，主要需要完成两部分工作。详细的方法请阅读 [`docs/YuanRTOS_API.md`](docs/YuanRTOS_API.md)。
+移植到新平台时，主要需要完成两部分工作。详细的方法请阅读 [`docs/tutorial/api/`](docs/tutorial/api/)。
 
 ### 1. 实现移植层接口
 

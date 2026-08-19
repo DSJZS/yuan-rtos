@@ -1,4 +1,4 @@
-![Yuan](docs/images/YuanLogo.jpg)  
+![Yuan](assets/YuanLogo.jpg)  
 **English** | [中文](README_zh.md)
 # Yuan RTOS Overview
 
@@ -180,7 +180,7 @@ For extremely resource-constrained environments, `-Os` is recommended. It is als
 
 ## Porting
 
-Porting Yuan RTOS to a new platform mainly requires two parts. For detailed methods, please read [`docs/YuanRTOS_API.md`](docs/YuanRTOS_API.md)。
+Porting Yuan RTOS to a new platform mainly requires two parts. For detailed methods, please read [`docs/tutorial/api/`](docs/tutorial/api/)。
 
 ### 1. Implement the porting-layer interfaces
 
