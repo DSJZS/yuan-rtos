@@ -5,9 +5,23 @@ export default defineConfig({
   lastUpdated: true,
   title: "Yuan RTOS",
   description: "一个轻量化的 RTOS 编写指南",
-  // 设定 public 根目录
+  // GitHub Pages 部署路径
   base: '/yuan-rtos/',
+  head: [
+    ['link', {
+      rel: 'icon',
+      type: 'image/svg+xml',
+      href: '/yuan-rtos/yuan-rtos-mark-dark.svg'
+    }]
+  ],
   themeConfig: {
+    logo: {
+      light: '/yuan-rtos-logo-compact-light.svg',
+      dark: '/yuan-rtos-logo-compact-dark.svg',
+      alt: 'Yuan RTOS'
+    },
+    siteTitle: false,
+
     search: {
       provider: 'local'
     },

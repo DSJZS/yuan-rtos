@@ -1,4 +1,11 @@
-![Yuan](assets/YuanLogo.jpg)  
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/public/yuan-rtos-logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/public/yuan-rtos-logo-light.svg">
+    <img alt="Yuan RTOS" src="docs/public/yuan-rtos-logo-light.svg" width="640">
+  </picture>
+</p>
+
 **English** | [中文](README_zh.md)
 # Yuan RTOS Overview
 
